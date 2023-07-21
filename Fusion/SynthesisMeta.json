@@ -1,0 +1,15 @@
+{
+  "Nickname": "FusionPatcher",
+  "Visibility": "Visible",
+  "OneLineDescription": "Fuse your records into a unified patch",
+  "LongDescription": "Fuse mod records together to create a unified patch. Granular control over individual records and what mods will be included in specified overrides",
+  "PreferredAutoVersioning": "Default",
+  "RequiredMods": [],
+  "TargetedReleases": [
+    "SkyrimLE",
+    "SkyrimSE",
+    "SkyrimVR",
+    "EnderalLE",
+    "EnderalSE"
+  ]
+}
