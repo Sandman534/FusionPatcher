@@ -194,10 +194,10 @@ namespace Fusion
                                 foreach (var rec in context.Record.Items)
                                     if (!originalObject.Record.Items.Where(x => x.Item.Item.FormKey == rec.Item.Item.FormKey && x.Item.Count == rec.Item.Count).Any())
                                     {
-                                        var oFoundRec = overrideObject.SingleOrDefault(x => x.Item.Item.FormKey == rec.Item.Item.FormKey);
-                                        if (oFoundRec != null && oFoundRec.Item.Count != rec.Item.Count)
+                                        var oFoundRec = overrideObject.Where(x => x.Item.Item.FormKey == rec.Item.Item.FormKey);
+                                        if (oFoundRec.First() != null && oFoundRec.First().Item.Count != rec.Item.Count)
                                         {
-                                            overrideObject.Remove(oFoundRec);
+                                            overrideObject.Remove(oFoundRec.First());
                                             overrideObject.Add(rec.DeepCopy());
                                             Change = true;
                                         }
