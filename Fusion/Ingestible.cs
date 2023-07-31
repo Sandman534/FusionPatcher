@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class BookSettings
+    public class IngestibleSettings
     {
         public List<ModKey> Destructible = new();
         public List<ModKey> Graphics = new();
@@ -20,23 +20,24 @@ namespace Fusion
         public List<ModKey> Stats = new();
         public List<ModKey> Text = new();
     }
-    internal class BookPatcher
+
+    internal class IngestiblePatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, BookSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, IngestibleSettings Settings)
         {
             List<ModKey> modList = new() {
-                Settings.Destructible, Settings.Graphics, Settings.Keywords, Settings.Names, Settings.ObjectBounds,
-                Settings.Sounds, Settings.Stats, Settings.Text };
+                Settings.Destructible, Settings.Graphics, Settings.Keywords, Settings.Names, Settings.ObjectBounds, Settings.Sounds, Settings.Stats, Settings.Text };
             HashSet<ModKey> workingModList = new(modList);
 
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Book().WinningContextOverrides())
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Ingestible().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IBook, IBookGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IIngestible, IIngestibleGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
-                var originalObject = state.LinkCache.ResolveAllContexts<IBook, IBookGetter>(workingContext.Record.FormKey).Last();
-                
+                // Get the base record
+                var originalObject = state.LinkCache.ResolveAllContexts<IIngestible, IIngestibleGetter>(workingContext.Record.FormKey).Last();
+
                 //==============================================================================================================
                 // Destructible
                 //==============================================================================================================
@@ -65,14 +66,12 @@ namespace Fusion
                 foreach(var foundContext in modContext.Where(context => Settings.Graphics.Contains(context.ModKey)))
                 {
                     if ((!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false)
-                        || !foundContext.Record.InventoryArt.Equals(originalObject.Record.InventoryArt)
                         || (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
                         if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false) Change = true;
-                        if (!foundContext.Record.InventoryArt.Equals(originalObject.Record.InventoryArt)) Change = true;
                         if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false) Change = true;
 
                         // Copy Records
@@ -80,7 +79,6 @@ namespace Fusion
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.Model != null) overrideObject.Model?.DeepCopyIn(foundContext.Record.Model);
-                            if (foundContext.Record.InventoryArt != null) overrideObject.InventoryArt.SetTo(foundContext.Record.InventoryArt);
                             if (foundContext.Record.Icons != null) overrideObject.Icons?.DeepCopyIn(foundContext.Record.Icons);
                         }
                         break;
@@ -98,7 +96,7 @@ namespace Fusion
                     {
                         // Create list and fill it with Last Record or Patch Record
                         ExtendedList<IFormLinkGetter<IKeywordGetter>> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<IBook, IBookGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Keywords != null)
+                        if (state.LinkCache.TryResolveContext<IIngestible, IIngestibleGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Keywords != null)
                             foreach (var rec in patchRecord.Record.Keywords)
                                 overrideObject.Add(rec);
                         else if (workingContext.Record.Keywords != null)
@@ -190,13 +188,15 @@ namespace Fusion
                 foreach(var foundContext in modContext.Where(context => Settings.Sounds.Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.PickUpSound.Equals(originalObject.Record.PickUpSound)
-                        || !foundContext.Record.PutDownSound.Equals(originalObject.Record.PutDownSound))
+                        || !foundContext.Record.PutDownSound.Equals(originalObject.Record.PutDownSound)
+                        || !foundContext.Record.ConsumeSound.Equals(originalObject.Record.ConsumeSound))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
                         if (!foundContext.Record.PickUpSound.Equals(workingContext.Record.PickUpSound)) Change = true;
                         if (!foundContext.Record.PutDownSound.Equals(workingContext.Record.PutDownSound)) Change = true;
+                        if (!foundContext.Record.ConsumeSound.Equals(workingContext.Record.ConsumeSound)) Change = true;
 
                         // Copy Records
                         if (Change)
@@ -204,6 +204,7 @@ namespace Fusion
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.PickUpSound != null) overrideObject.PickUpSound.SetTo(foundContext.Record.PickUpSound);
                             if (foundContext.Record.PutDownSound != null) overrideObject.PutDownSound.SetTo(foundContext.Record.PutDownSound);
+                            if (foundContext.Record.ConsumeSound != null) overrideObject.ConsumeSound.SetTo(foundContext.Record.ConsumeSound);
                         }
                         break;
                     }
@@ -212,7 +213,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Stats
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.Stats.Contains(context.ModKey)))
                 {
                     if ((!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false)
                         || !foundContext.Record.Value.Equals(originalObject.Record.Value)
@@ -221,9 +222,9 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.EditorID?.Equals(workingContext.Record.EditorID) ?? false) Change = true;
-                        if (!foundContext.Record.Value.Equals(workingContext.Record.Value))  Change = true;
-                        if (!foundContext.Record.Weight.Equals(workingContext.Record.Weight))  Change = true;
+                        if (!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false) Change = true;
+                        if (!foundContext.Record.Value.Equals(originalObject.Record.Value)) Change = true;
+                        if (!foundContext.Record.Weight.Equals(originalObject.Record.Weight)) Change = true;
 
                         // Copy Records
                         if (Change)
@@ -242,26 +243,23 @@ namespace Fusion
                 //==============================================================================================================
                 foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
                 {
-                    if ((!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
-                        || !foundContext.Record.BookText.Equals(originalObject.Record.BookText))
+                    if (!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
                         if (!foundContext.Record.Description?.Equals(workingContext.Record.Description) ?? false) Change = true;
-                        if (!foundContext.Record.BookText.Equals(workingContext.Record.BookText))  Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.Description != null) overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
-                            if (foundContext.Record.BookText != null) overrideObject.BookText?.Set(foundContext.Record.BookText.TargetLanguage, foundContext.Record.BookText.String);
                         }
                         break;
                     }
                 }
-                
+
             }
         }
     }

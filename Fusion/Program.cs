@@ -1,34 +1,13 @@
 using Mutagen.Bethesda;
+using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Binary.Headers;
+using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Mutagen.Bethesda.WPF.Reflection.Attributes;
 
 namespace Fusion
 {
-    public class Settings
-    {
-        [SettingName("Armor")]
-        public List<ArmorSettings> settingsArmor = new() { new ArmorSettings() };
-        [SettingName("Books")]
-        public List<BookSettings> settingsBooks = new() { new BookSettings() };
-        [SettingName("Cells")]
-        public List<CellSettings> settingsCells = new() { new CellSettings() };
-        [SettingName("Containers")]
-        public List<ContainerSettings> settingsContainers = new() { new ContainerSettings() };
-        [SettingName("Factions")]
-        public List<FactionSettings> settingsFactions = new() { new FactionSettings() };
-        [SettingName("Locations")]
-        public List<LocationSettings> settingsLocations = new() { new LocationSettings() };
-        [SettingName("NPCs")]
-        public List<NPCSettings> settingsNPCs = new() { new NPCSettings() };
-        [SettingName("Perks")]
-        public List<PerkSettings> settingsPerks = new() { new PerkSettings() };
-        [SettingName("Quests")]
-        public List<QuestSettings> settingsQuests = new() { new QuestSettings() };
-        [SettingName("Weapons")]
-        public List<WeaponSettings> settingsWeapons = new() { new WeaponSettings() };
-    }
-
     public class Program
     {
         private static Lazy<Settings> _settings = null!;
@@ -46,36 +25,59 @@ namespace Fusion
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
+            // Get New Settings based on Simple/Advanced
+            SettingsUtility NewSettings = new();
+            if (Settings.BashTags)
+                NewSettings.ProcessBashTags(state, Settings);
 
-            Console.WriteLine("Processing Armor");
-            ArmorPatcher.Patch(state, Settings.settingsArmor[0]);
+            // Process User Tags
+            NewSettings.ProcessManualTags(Settings);
+
+            // Begin Record Processing
+            Console.WriteLine("Processing Activators");
+            ActivatorPatcher.Patch(state, NewSettings.SettingsActivator);
+
+            Console.WriteLine("Processing Armors");
+            ArmorPatcher.Patch(state, NewSettings.SettingsArmor);
 
             Console.WriteLine("Processing Books");
-            BookPatcher.Patch(state, Settings.settingsBooks[0]);
+            BookPatcher.Patch(state, NewSettings.SettingsBooks);
 
             Console.WriteLine("Processing Cells");
-            CellPatcher.Patch(state, Settings.settingsCells[0]);
+            CellPatcher.Patch(state, NewSettings.SettingsCells);
 
             Console.WriteLine("Processing Containers");
-            ContainerPatcher.Patch(state, Settings.settingsContainers[0]);
+            ContainerPatcher.Patch(state, NewSettings.SettingsContainers);
 
             Console.WriteLine("Processing Factions");
-            FactionPatcher.Patch(state, Settings.settingsFactions[0]);
+            FactionPatcher.Patch(state, NewSettings.SettingsFactions);
+
+            Console.WriteLine("Processing Ingestibles");
+            WeaponPatcher.Patch(state, NewSettings.SettingsWeapons);
+
+            Console.WriteLine("Processing Leveled Items");
+            LeveledItemPatcher.Patch(state, NewSettings.SettingsLeveledItems);
+
+            Console.WriteLine("Processing Leveled NPCs");
+            LeveledNPCPatcher.Patch(state, NewSettings.SettingsLeveledNPCs);
+
+            Console.WriteLine("Processing Leveled Spells");
+            LeveledSpellPatcher.Patch(state, NewSettings.SettingsLeveledSpells);
 
             Console.WriteLine("Processing Locations");
-            LocationPatcher.Patch(state, Settings.settingsLocations[0]);
+            LocationPatcher.Patch(state, NewSettings.SettingsLocations);
 
             Console.WriteLine("Processing NPCs");
-            NPCPatcher.Patch(state, Settings.settingsNPCs[0]);
+            NPCPatcher.Patch(state, NewSettings.SettingsNPCs);
 
             Console.WriteLine("Processing Perks");
-            PerkPatcher.Patch(state, Settings.settingsPerks[0]);
+            PerkPatcher.Patch(state, NewSettings.SettingsPerks);
 
             Console.WriteLine("Processing Quests");
-            QuestPatcher.Patch(state, Settings.settingsQuests[0]);
+            QuestPatcher.Patch(state, NewSettings.SettingsQuests);
 
             Console.WriteLine("Processing Weapons");
-            WeaponPatcher.Patch(state, Settings.settingsWeapons[0]);
+            WeaponPatcher.Patch(state, NewSettings.SettingsWeapons);
         }
     }
 }

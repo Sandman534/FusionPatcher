@@ -3,99 +3,106 @@ using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
-using Mutagen.Bethesda.Strings;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using System.Collections.Immutable;
-
 
 namespace Fusion
 {
     public class PerkSettings
     {
-        public List<ModKey> Description = new();
-        public List<ModKey> Conditions = new();
+        public List<ModKey> Graphics = new();
+        public List<ModKey> Names = new();
+        public List<ModKey> Text = new();
+        
     }
 
     internal class PerkPatcher
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, PerkSettings Settings)
         {
-            List<ModKey> modList = new List<ModKey>
-            {
-                Settings.Description,
-                Settings.Conditions
-            };
-            HashSet<ModKey> workingModList = new HashSet<ModKey>(modList);
+            List<ModKey> modList = new() { 
+                Settings.Graphics, Settings.Names, Settings.Text };
+            HashSet<ModKey> workingModList = new(modList);
 
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Perk().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var testContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey)).ToImmutableHashSet();
-                if (testContext == null || testContext.Count <= 0) continue;
+                var modContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                if (modContext == null || !modContext.Any()) continue;
 
                 // Get the base record
-                var originalObject = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).ToImmutableHashSet().First();
+                var originalObject = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Last();
+                
+                //==============================================================================================================
+                // Graphics
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Graphics.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Icons?.Equals(workingContext.Record.Icons) ?? false) Change = true;
+                        
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            var lastObject = foundContext.Record;
+                            if (lastObject.Icons != null) overrideObject.Icons?.DeepCopyIn(lastObject.Icons);
+                        }
+                        break;
+                    }
+                }
+
+                //==============================================================================================================
+                // Names
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Name?.Equals(workingContext.Record.Name) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            var lastObject = foundContext.Record;
+                            if (lastObject.Name != null) overrideObject.Name?.Set(lastObject.Name.TargetLanguage, lastObject.Name.String);
+                        }
+                        break;
+                    }
+                }
 
                 //==============================================================================================================
                 // Description
                 //==============================================================================================================
-                if (Settings.Description.Count > 0)
+                foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
                 {
-                    var foundContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Description.Contains(context.ModKey)
-                            && (context.Record.Description != originalObject.Record.Description))
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
+                    if (!foundContext.Record.Description.Equals(originalObject.Record.Description))
                     {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        var lastObject = foundContext.Last().Record;
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (foundContext.Record.Description.Equals(workingContext.Record.Description)) Change = true;
 
                         // Copy Records
-                        overrideObject.Description.Set(lastObject.Description.TargetLanguage, lastObject.Description.String);
-                    }
-                }
-
-                //==============================================================================================================
-                // Conditions
-                //==============================================================================================================
-                if (Settings.Conditions.Count > 0)
-                {
-                    // Get the last overriding context of our element
-                    var foundContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Conditions.Contains(context.ModKey)
-                            && (context.Record.Conditions != originalObject.Record.Conditions))
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
-                    {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-
-                        // Add All Records
-                        foreach (var context in foundContext)
-                        {
-                            var listObject = context.Record;
-                            if (listObject.Conditions != null && listObject.Conditions.Count > 0)
-                            {
-                                // Remove Items
-                                if (originalObject.Record.Conditions != null && originalObject.Record.Conditions.Count > 0 && overrideObject.Conditions?.Count > 0)
-                                    foreach (var rec in originalObject.Record.Conditions)
-                                        if (!listObject.Conditions.Contains(rec) && overrideObject.Conditions.Contains(rec))
-                                            overrideObject.Conditions.Remove(rec.DeepCopy());
-
-                                // Add Items
-                                foreach (var rec in listObject.Conditions)
-                                    if (overrideObject.Conditions != null && !overrideObject.Conditions.Contains(rec))
-                                        overrideObject.Conditions.Add(rec.DeepCopy());
-                            }
+                        if (Change)
+                        {   
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            var lastObject = foundContext.Record;
+                            overrideObject.Description.Set(lastObject.Description.TargetLanguage, lastObject.Description.String);
                         }
+                        break;
                     }
                 }
+
             }
         }
     }

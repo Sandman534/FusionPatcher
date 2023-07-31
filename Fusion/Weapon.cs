@@ -11,99 +11,104 @@ namespace Fusion
 {
     public class WeaponSettings
     {
-        public List<ModKey> Stats = new();
+        public List<ModKey> Destructible = new();
+        public List<ModKey> Enchantments = new();
         public List<ModKey> Graphics = new();
         public List<ModKey> Keywords = new();
+        public List<ModKey> Names = new();
+        public List<ModKey> ObjectBounds = new();
+        public List<ModKey> Stats = new();
         public List<ModKey> Sounds = new();
+        public List<ModKey> Text = new();
     }
 
     internal class WeaponPatcher
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, WeaponSettings Settings)
         {
-            List<ModKey> modList = new List<ModKey>
-            {
-                Settings.Stats,
-                Settings.Graphics,
-                Settings.Keywords,
-                Settings.Sounds
-            };
-            HashSet<ModKey> workingModList = new HashSet<ModKey>(modList);
+            List<ModKey> modList = new() {
+                Settings.Destructible, Settings.Enchantments, Settings.Graphics, Settings.Keywords, Settings.Names, Settings.ObjectBounds,
+                Settings.Stats, Settings.Sounds, Settings.Text };
+            HashSet<ModKey> workingModList = new(modList);
 
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Weapon().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var testContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey)).ToImmutableHashSet();
-                if (testContext == null || testContext.Count <= 0) continue;
+                var modContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                if (modContext == null || !modContext.Any()) continue;
 
                 // Get the base record
-                var originalObject = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey).ToImmutableHashSet().First();
+                var originalObject = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey).Last();
 
                 //==============================================================================================================
-                // Stats
+                // Destructible
                 //==============================================================================================================
-                if (Settings.Stats.Count > 0)
+                foreach(var foundContext in modContext.Where(context => Settings.Destructible.Contains(context.ModKey)))
                 {
-                    var foundContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Stats.Contains(context.ModKey)
-                            && (context.Record.Name != originalObject.Record.Name
-                                || context.Record.Data != originalObject.Record.Data
-                                || context.Record.Critical != originalObject.Record.Critical
-                                || context.Record.BasicStats != originalObject.Record.BasicStats
-                                || context.Record.ImpactDataSet != originalObject.Record.ImpactDataSet
-                                || context.Record.AlternateBlockMaterial != originalObject.Record.AlternateBlockMaterial
-                                || context.Record.DetectionSoundLevel != originalObject.Record.DetectionSoundLevel))
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
+                    if (!foundContext.Record.Destructible?.Equals(originalObject.Record.Destructible) ?? false)
                     {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        var lastObject = foundContext.Last().Record;
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Destructible?.Equals(workingContext.Record.Destructible) ?? false) Change = true;
 
                         // Copy Records
-                        if (lastObject.Name != null && overrideObject.Name != lastObject.Name)
-                            overrideObject.Name = lastObject.Name.ToString();
-                        if (lastObject.Data != null && overrideObject.Data != lastObject.Data) 
-                            overrideObject.Data?.DeepCopyIn(lastObject.Data);
-                        if (lastObject.Critical != null && overrideObject.Critical != lastObject.Critical) 
-                            overrideObject.Critical?.DeepCopyIn(lastObject.Critical);
-                        if (lastObject.BasicStats != null && overrideObject.BasicStats != lastObject.BasicStats) 
-                            overrideObject.BasicStats?.DeepCopyIn(lastObject.BasicStats);
-                        if (lastObject.ImpactDataSet != null && overrideObject.ImpactDataSet != lastObject.ImpactDataSet) 
-                            overrideObject.ImpactDataSet.SetTo(lastObject.ImpactDataSet);
-                        if (lastObject.AlternateBlockMaterial != null && overrideObject.AlternateBlockMaterial != lastObject.AlternateBlockMaterial) 
-                            overrideObject.AlternateBlockMaterial.SetTo(lastObject.AlternateBlockMaterial);
-                        if (lastObject.DetectionSoundLevel != null && overrideObject.DetectionSoundLevel != lastObject.DetectionSoundLevel) 
-                            overrideObject.DetectionSoundLevel = lastObject.DetectionSoundLevel;
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.Destructible != null) overrideObject.Destructible?.DeepCopyIn(foundContext.Record.Destructible);
+                        }
+                        break;
+                    }
+                }
+
+                //==============================================================================================================
+                // Enchantments
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Enchantments.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.ObjectEffect?.Equals(originalObject.Record.ObjectEffect) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.ObjectEffect?.Equals(workingContext.Record.ObjectEffect) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.ObjectEffect != null) overrideObject.ObjectEffect?.SetTo(foundContext.Record.ObjectEffect);
+                        }
+                        break;
                     }
                 }
 
                 //==============================================================================================================
                 // Graphics
                 //==============================================================================================================
-                if (Settings.Graphics.Count > 0)
+                foreach(var foundContext in modContext.Where(context => Settings.Graphics.Contains(context.ModKey)))
                 {
-                    // Get the last overriding context of our element
-                    var foundContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Graphics.Contains(context.ModKey)
-                            && (context.Record.Model != originalObject.Record.Model
-                                || context.Record.FirstPersonModel != originalObject.Record.FirstPersonModel))
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
+                    if ((!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false)
+                        || !foundContext.Record.FirstPersonModel.Equals(originalObject.Record.FirstPersonModel)
+                        || (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false))
                     {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        var lastObject = foundContext.Last().Record;
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false) Change = true;
+                        if (!foundContext.Record.FirstPersonModel.Equals(originalObject.Record.FirstPersonModel)) Change = true;
+                        if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false) Change = true;
 
                         // Copy Records
-                        if (lastObject.Model != null && overrideObject.Model != lastObject.Model) 
-                            overrideObject.Model?.DeepCopyIn(lastObject.Model);
-                        if (lastObject.FirstPersonModel != null && overrideObject.FirstPersonModel != lastObject.FirstPersonModel) 
-                            overrideObject.FirstPersonModel.SetTo(lastObject.FirstPersonModel);
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.Model != null) overrideObject.Model?.DeepCopyIn(foundContext.Record.Model);
+                            if (foundContext.Record.FirstPersonModel != null) overrideObject.FirstPersonModel.SetTo(foundContext.Record.FirstPersonModel);
+                            if (foundContext.Record.Icons != null) overrideObject.Icons?.DeepCopyIn(foundContext.Record.Icons);
+                        }
+                        break;
                     }
                 }
 
@@ -113,78 +118,209 @@ namespace Fusion
                 if (Settings.Keywords.Count > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Keywords.Contains(context.ModKey) && context.Record.Keywords != originalObject.Record.Keywords)
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
+                    var foundContext = modContext.Where(context => Settings.Keywords.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
+                    if (foundContext.Any())
                     {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                        // Create list and fill it with Last Record or Patch Record
+                        ExtendedList<IFormLinkGetter<IKeywordGetter>> overrideObject = new();
+                        if (state.LinkCache.TryResolveContext<IWeapon, IWeaponGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Keywords != null)
+                            foreach (var rec in patchRecord.Record.Keywords)
+                                overrideObject.Add(rec);
+                        else if (workingContext.Record.Keywords != null)
+                            foreach (var rec in workingContext.Record.Keywords)
+                                overrideObject.Add(rec);
 
-                        // Add All Records
+                        // Add Records
+                        bool Change = false;
                         foreach (var context in foundContext)
                         {
-                            var listObject = context.Record;
-                            if (listObject.Keywords != null && listObject.Keywords.Count > 0)
-                            {
-                                // Remove Items
-                                if (originalObject.Record.Keywords != null && originalObject.Record.Keywords.Count > 0 && overrideObject.Keywords?.Count > 0)
-                                    foreach (var rec in originalObject.Record.Keywords)
-                                        if (!listObject.Keywords.Contains(rec) && overrideObject.Keywords.Contains(rec))
-                                            overrideObject.Keywords.Remove(rec);
-
-                                // Add Items
-                                foreach (var rec in listObject.Keywords)
-                                    if (overrideObject.Keywords != null && !overrideObject.Keywords.Contains(rec))
-                                        overrideObject.Keywords.Add(rec);
-                            }
+                            if (context.Record.Keywords != null && context.Record.Keywords.Count > 0)
+                                foreach (var rec in context.Record.Keywords)
+                                    if (originalObject.Record.Keywords != null && !originalObject.Record.Keywords.Contains(rec) && !overrideObject.Contains(rec))
+                                    {
+                                        overrideObject.Add(rec);
+                                        Change = true;
+                                    }
                         }
+
+                        // Remove Records
+                        foreach (var context in foundContext.Reverse())
+                        {
+                            if (context.Record.Keywords != null && context.Record.Keywords.Count > 0)
+                                if (originalObject.Record.Keywords != null && originalObject.Record.Keywords.Count > 0 && originalObject.Record.Keywords?.Count > 0)
+                                    foreach (var rec in originalObject.Record.Keywords)
+                                        if (!context.Record.Keywords.Contains(rec) && overrideObject.Contains(rec))
+                                        {
+                                            overrideObject.Remove(rec);
+                                            Change = true;
+                                        }
+                        }
+
+                        // If changes were made, override and write back
+                        if (Change)
+                        {
+                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            addedRecord.Keywords?.SetTo(overrideObject);
+                        }
+                    }
+                }
+
+                //==============================================================================================================
+                // Names
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Name?.Equals(workingContext.Record.Name) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.Name != null) overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                        }
+                        break;
+                    }
+                }
+
+                //==============================================================================================================
+                // Object Bounds
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.ObjectBounds.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.ObjectBounds?.Equals(workingContext.Record.ObjectBounds) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.ObjectBounds != null) overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                        }
+                        break;
                     }
                 }
 
                 //==============================================================================================================
                 // Sounds
                 //==============================================================================================================
-                if (Settings.Sounds.Count > 0)
+                foreach(var foundContext in modContext.Where(context => Settings.Sounds.Contains(context.ModKey)))
                 {
-                    // Get the last overriding context of our element
-                    var foundContext = state.LinkCache.ResolveAllContexts<IWeapon, IWeaponGetter>(workingContext.Record.FormKey)
-                        .Where(context => Settings.Graphics.Contains(context.ModKey)
-                            && (context.Record.AttackSound != originalObject.Record.AttackSound
-                                || context.Record.AttackSound2D != originalObject.Record.AttackSound2D
-                                || context.Record.AttackLoopSound != originalObject.Record.AttackLoopSound
-                                || context.Record.AttackFailSound != originalObject.Record.AttackFailSound
-                                || context.Record.IdleSound != originalObject.Record.IdleSound
-                                || context.Record.EquipSound != originalObject.Record.EquipSound
-                                || context.Record.UnequipSound != originalObject.Record.UnequipSound))
-                        .ToImmutableHashSet();
-
-                    // If we found records to modify
-                    if (foundContext.Count > 0 && foundContext.Last().ModKey != workingContext.ModKey)
+                    if (!foundContext.Record.AttackSound.Equals(originalObject.Record.AttackSound)
+                        || !foundContext.Record.AttackSound2D.Equals(originalObject.Record.AttackSound2D)
+                        || !foundContext.Record.AttackLoopSound.Equals(originalObject.Record.AttackLoopSound)
+                        || !foundContext.Record.AttackFailSound.Equals(originalObject.Record.AttackFailSound)
+                        || !foundContext.Record.IdleSound.Equals(originalObject.Record.IdleSound)
+                        || !foundContext.Record.EquipSound.Equals(originalObject.Record.EquipSound)
+                        || !foundContext.Record.UnequipSound.Equals(originalObject.Record.UnequipSound)
+                        || !foundContext.Record.PickUpSound.Equals(originalObject.Record.PickUpSound)
+                        || !foundContext.Record.PutDownSound.Equals(originalObject.Record.PutDownSound)
+                        || !foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel))
                     {
-                        // Last and New Record
-                        var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        var lastObject = foundContext.Last().Record;
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.AttackSound.Equals(originalObject.Record.AttackSound)) Change = true;
+                        if (!foundContext.Record.AttackSound2D.Equals(originalObject.Record.AttackSound2D)) Change = true;
+                        if (!foundContext.Record.AttackLoopSound.Equals(originalObject.Record.AttackLoopSound)) Change = true;
+                        if (!foundContext.Record.AttackFailSound.Equals(originalObject.Record.AttackFailSound)) Change = true;
+                        if (!foundContext.Record.IdleSound.Equals(originalObject.Record.IdleSound)) Change = true;
+                        if (!foundContext.Record.EquipSound.Equals(originalObject.Record.EquipSound)) Change = true;
+                        if (!foundContext.Record.UnequipSound.Equals(originalObject.Record.UnequipSound)) Change = true;
+                        if (!foundContext.Record.PickUpSound.Equals(originalObject.Record.PickUpSound)) Change = true;
+                        if (!foundContext.Record.PutDownSound.Equals(originalObject.Record.PutDownSound)) Change = true;
+                        if (!foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel)) Change = true;
 
                         // Copy Records
-                        if (lastObject.AttackSound != null && overrideObject.AttackSound != lastObject.AttackSound) 
-                            overrideObject.AttackSound.SetTo(lastObject.AttackSound);
-                        if (lastObject.AttackSound2D != null && overrideObject.AttackSound2D != lastObject.AttackSound2D) 
-                            overrideObject.AttackSound2D.SetTo(lastObject.AttackSound2D);
-                        if (lastObject.AttackLoopSound != null && overrideObject.AttackLoopSound != lastObject.AttackLoopSound) 
-                            overrideObject.AttackLoopSound.SetTo(lastObject.AttackLoopSound);
-                        if (lastObject.AttackFailSound != null && overrideObject.AttackFailSound != lastObject.AttackFailSound) 
-                            overrideObject.AttackFailSound.SetTo(lastObject.AttackFailSound);
-                        if (lastObject.IdleSound != null && overrideObject.IdleSound != lastObject.IdleSound) 
-                            overrideObject.IdleSound.SetTo(lastObject.IdleSound);
-                        if (lastObject.EquipSound != null && overrideObject.EquipSound != lastObject.EquipSound) 
-                            overrideObject.EquipSound.SetTo(lastObject.EquipSound);
-                        if (lastObject.UnequipSound != null && overrideObject.UnequipSound != lastObject.UnequipSound) 
-                            overrideObject.UnequipSound.SetTo(lastObject.UnequipSound);
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.AttackSound != null) overrideObject.AttackSound.SetTo(foundContext.Record.AttackSound);
+                            if (foundContext.Record.AttackSound2D != null) overrideObject.AttackSound2D.SetTo(foundContext.Record.AttackSound2D);
+                            if (foundContext.Record.AttackLoopSound != null) overrideObject.AttackLoopSound.SetTo(foundContext.Record.AttackLoopSound);
+                            if (foundContext.Record.AttackFailSound != null) overrideObject.AttackFailSound.SetTo(foundContext.Record.AttackFailSound);
+                            if (foundContext.Record.IdleSound != null) overrideObject.IdleSound.SetTo(foundContext.Record.IdleSound);
+                            if (foundContext.Record.EquipSound != null) overrideObject.EquipSound.SetTo(foundContext.Record.EquipSound);
+                            if (foundContext.Record.UnequipSound != null) overrideObject.UnequipSound.SetTo(foundContext.Record.UnequipSound);
+                            if (foundContext.Record.PickUpSound != null) overrideObject.PickUpSound.SetTo(foundContext.Record.PickUpSound);
+                            if (foundContext.Record.PutDownSound != null) overrideObject.PutDownSound.SetTo(foundContext.Record.PutDownSound);
+                            if (foundContext.Record.DetectionSoundLevel != null) overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
+                        }
+                        break;
                     }
                 }
+
+                //==============================================================================================================
+                // Stats
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Stats.Contains(context.ModKey)))
+                {
+                    if ((!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false)
+                        || (!foundContext.Record.Data?.Equals(originalObject.Record.Data) ?? false)
+                        || (!foundContext.Record.Critical?.Equals(originalObject.Record.Critical) ?? false)
+                        || (!foundContext.Record.BasicStats?.Equals(originalObject.Record.BasicStats) ?? false)
+                        || !foundContext.Record.ImpactDataSet.Equals(originalObject.Record.ImpactDataSet)
+                        || !foundContext.Record.AlternateBlockMaterial.Equals(originalObject.Record.AlternateBlockMaterial)
+                        || !foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel))
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false) Change = true;
+                        if (!foundContext.Record.Data?.Equals(originalObject.Record.Data) ?? false) Change = true;
+                        if (!foundContext.Record.Critical?.Equals(originalObject.Record.Critical) ?? false) Change = true;
+                        if (!foundContext.Record.BasicStats?.Equals(originalObject.Record.BasicStats) ?? false) Change = true;
+                        if (!foundContext.Record.ImpactDataSet.Equals(originalObject.Record.ImpactDataSet)) Change = true;
+                        if (!foundContext.Record.AlternateBlockMaterial.Equals(originalObject.Record.AlternateBlockMaterial)) Change = true;
+                        if (!foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel)) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.EditorID != null) overrideObject.EditorID = foundContext.Record.EditorID;
+                            if (foundContext.Record.Data != null) overrideObject.Data?.DeepCopyIn(foundContext.Record.Data);
+                            if (foundContext.Record.Critical != null) overrideObject.Critical?.DeepCopyIn(foundContext.Record.Critical);
+                            if (foundContext.Record.BasicStats != null) overrideObject.BasicStats?.DeepCopyIn(foundContext.Record.BasicStats);
+                            if (foundContext.Record.ImpactDataSet != null) overrideObject.ImpactDataSet.SetTo(foundContext.Record.ImpactDataSet);
+                            if (foundContext.Record.AlternateBlockMaterial != null) overrideObject.AlternateBlockMaterial.SetTo(foundContext.Record.AlternateBlockMaterial);
+                            if (foundContext.Record.DetectionSoundLevel != null) overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
+                            
+                        }
+                        break;
+                    }
+                }
+
+                //==============================================================================================================
+                // Text
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.Description?.Equals(workingContext.Record.Description) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.Description != null) overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
+                        }
+                        break;
+                    }
+                }
+            
             }
         }
     }
