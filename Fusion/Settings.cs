@@ -70,12 +70,14 @@ namespace Fusion
 
     public class SettingsUtility
     {
+        #region Setting Variables
         public ActivatorSettings SettingsActivator { get; set; }
         public ArmorSettings SettingsArmor { get; set; }
         public BookSettings SettingsBooks { get; set; }
         public CellSettings SettingsCells { get; set; }
         public ContainerSettings SettingsContainers { get; set; }
         public FactionSettings SettingsFactions { get; set; }
+        public FloraSettings SettingsFlora { get; set; }
         public IngestibleSettings SettingsIngestibles { get; set; }
         public LeveledItemSettings SettingsLeveledItems { get; set; }
         public LeveledSpellSettings SettingsLeveledSpells { get; set; }
@@ -85,6 +87,7 @@ namespace Fusion
         public PerkSettings SettingsPerks { get; set; }
         public QuestSettings SettingsQuests { get; set; }
         public WeaponSettings SettingsWeapons { get; set; }
+        #endregion
 
         public SettingsUtility()
         {
@@ -94,6 +97,7 @@ namespace Fusion
             SettingsCells = new CellSettings();
             SettingsContainers = new ContainerSettings();
             SettingsFactions = new FactionSettings();
+            SettingsFlora = new FloraSettings();
             SettingsIngestibles = new IngestibleSettings();
             SettingsLeveledItems = new LeveledItemSettings();
             SettingsLeveledSpells = new LeveledSpellSettings();
@@ -212,6 +216,7 @@ namespace Fusion
                         SettingsArmor.Destructible.Add(mod.ModKey);
                         SettingsBooks.Destructible.Add(mod.ModKey);
                         SettingsContainers.Destructible.Add(mod.ModKey);
+                        SettingsFlora.Destructible.Add(mod.ModKey);
                         SettingsIngestibles.Destructible.Add(mod.ModKey);
                         SettingsWeapons.Destructible.Add(mod.ModKey);
                     }
@@ -238,6 +243,7 @@ namespace Fusion
                         SettingsArmor.Graphics.Add(mod.ModKey);
                         SettingsBooks.Graphics.Add(mod.ModKey);
                         SettingsContainers.Graphics.Add(mod.ModKey);
+                        SettingsFlora.Graphics.Add(mod.ModKey);
                         SettingsIngestibles.Graphics.Add(mod.ModKey);
                         SettingsWeapons.Graphics.Add(mod.ModKey);
                     }
@@ -276,6 +282,7 @@ namespace Fusion
                         SettingsActivator.Keywords.Add(mod.ModKey);
                         SettingsArmor.Keywords.Add(mod.ModKey);
                         SettingsBooks.Keywords.Add(mod.ModKey);
+                        SettingsFlora.Keywords.Add(mod.ModKey);
                         SettingsIngestibles.Keywords.Add(mod.ModKey);
                         SettingsLocations.Keywords.Add(mod.ModKey);
                         SettingsNPCs.Keywords.Add(mod.ModKey);
@@ -306,6 +313,7 @@ namespace Fusion
                         SettingsBooks.Names.Add(mod.ModKey);
                         SettingsContainers.Names.Add(mod.ModKey);
                         SettingsFactions.Names.Add(mod.ModKey);
+                        SettingsFlora.Names.Add(mod.ModKey);
                         SettingsIngestibles.Names.Add(mod.ModKey);
                         SettingsLocations.Names.Add(mod.ModKey);
                         SettingsNPCs.Names.Add(mod.ModKey);
@@ -321,6 +329,7 @@ namespace Fusion
                         SettingsActivator.ObjectBounds.Add(mod.ModKey);
                         SettingsBooks.ObjectBounds.Add(mod.ModKey);
                         SettingsContainers.ObjectBounds.Add(mod.ModKey);
+                        SettingsFlora.ObjectBounds.Add(mod.ModKey);
                         SettingsIngestibles.ObjectBounds.Add(mod.ModKey);
                         SettingsLeveledItems.ObjectBounds.Add(mod.ModKey);
                         SettingsLeveledSpells.ObjectBounds.Add(mod.ModKey);
@@ -419,6 +428,7 @@ namespace Fusion
                         SettingsArmor.Sounds.Add(mod.ModKey);
                         SettingsBooks.Sounds.Add(mod.ModKey);
                         SettingsContainers.Sounds.Add(mod.ModKey);
+                        SettingsFlora.Sounds.Add(mod.ModKey);
                         SettingsIngestibles.Sounds.Add(mod.ModKey);
                         SettingsLocations.Sounds.Add(mod.ModKey);
                         SettingsWeapons.Sounds.Add(mod.ModKey);
@@ -443,6 +453,7 @@ namespace Fusion
                     {
                         SettingsArmor.Text.Add(mod.ModKey);
                         SettingsBooks.Text.Add(mod.ModKey);
+                        SettingsFlora.Text.Add(mod.ModKey);
                         SettingsIngestibles.Text.Add(mod.ModKey);
                         SettingsPerks.Text.Add(mod.ModKey);
                         SettingsQuests.Text.Add(mod.ModKey);
@@ -500,6 +511,7 @@ namespace Fusion
             SettingsArmor.Destructible.Add(UserSettings.settingsDestructibles);
             SettingsBooks.Destructible.Add(UserSettings.settingsDestructibles);
             SettingsContainers.Destructible.Add(UserSettings.settingsDestructibles);
+            SettingsFlora.Destructible.Add(UserSettings.settingsDestructibles);
             SettingsIngestibles.Destructible.Add(UserSettings.settingsDestructibles);
             SettingsWeapons.Destructible.Add(UserSettings.settingsDestructibles);
             #endregion
@@ -514,6 +526,7 @@ namespace Fusion
             SettingsArmor.Graphics.Add(UserSettings.settingsGraphics);
             SettingsBooks.Graphics.Add(UserSettings.settingsGraphics);
             SettingsContainers.Graphics.Add(UserSettings.settingsGraphics);
+            SettingsFlora.Graphics.Add(UserSettings.settingsGraphics);
             SettingsIngestibles.Graphics.Add(UserSettings.settingsGraphics);
             SettingsWeapons.Graphics.Add(UserSettings.settingsGraphics);
             #endregion
@@ -531,6 +544,7 @@ namespace Fusion
             SettingsActivator.Keywords.Add(UserSettings.settingsKeywords);
             SettingsArmor.Keywords.Add(UserSettings.settingsKeywords);
             SettingsBooks.Keywords.Add(UserSettings.settingsKeywords);
+            SettingsFlora.Keywords.Add(UserSettings.settingsKeywords);
             SettingsLocations.Keywords.Add(UserSettings.settingsKeywords);
             SettingsNPCs.Keywords.Add(UserSettings.settingsKeywords);
             SettingsIngestibles.Keywords.Add(UserSettings.settingsKeywords);
@@ -552,6 +566,7 @@ namespace Fusion
             SettingsBooks.Names.Add(UserSettings.settingsNames);
             SettingsContainers.Names.Add(UserSettings.settingsNames);
             SettingsFactions.Names.Add(UserSettings.settingsNames);
+            SettingsFlora.Names.Add(UserSettings.settingsNames);
             SettingsIngestibles.Names.Add(UserSettings.settingsNames);
             SettingsLocations.Names.Add(UserSettings.settingsNames);
             SettingsNPCs.Names.Add(UserSettings.settingsNames);
@@ -564,10 +579,11 @@ namespace Fusion
             SettingsActivator.ObjectBounds.Add(UserSettings.settingsStats);
             SettingsBooks.ObjectBounds.Add(UserSettings.settingsStats);
             SettingsContainers.ObjectBounds.Add(UserSettings.settingsStats);
+            SettingsFlora.ObjectBounds.Add(UserSettings.settingsStats);
             SettingsIngestibles.ObjectBounds.Add(UserSettings.settingsStats);
-            SettingsLeveledItems.ObjectBounds.Add(UserSettings.settingsNames);
-            SettingsLeveledSpells.ObjectBounds.Add(UserSettings.settingsNames);
-            SettingsLeveledNPCs.ObjectBounds.Add(UserSettings.settingsNames);
+            SettingsLeveledItems.ObjectBounds.Add(UserSettings.settingsStats);
+            SettingsLeveledSpells.ObjectBounds.Add(UserSettings.settingsStats);
+            SettingsLeveledNPCs.ObjectBounds.Add(UserSettings.settingsStats);
             SettingsWeapons.ObjectBounds.Add(UserSettings.settingsStats);
             #endregion
 
@@ -592,6 +608,7 @@ namespace Fusion
             SettingsArmor.Sounds.Add(UserSettings.settingsSounds);
             SettingsBooks.Sounds.Add(UserSettings.settingsSounds);
             SettingsContainers.Sounds.Add(UserSettings.settingsSounds);
+            SettingsFlora.Sounds.Add(UserSettings.settingsSounds);
             SettingsIngestibles.Sounds.Add(UserSettings.settingsSounds);
             SettingsLocations.Sounds.Add(UserSettings.settingsSounds);
             SettingsWeapons.Sounds.Add(UserSettings.settingsSounds);
@@ -607,6 +624,7 @@ namespace Fusion
             #region Text
             SettingsArmor.Text.Add(UserSettings.settingsText);
             SettingsBooks.Text.Add(UserSettings.settingsText);
+            SettingsFlora.Text.Add(UserSettings.settingsText);
             SettingsIngestibles.Text.Add(UserSettings.settingsText);
             SettingsPerks.Text.Add(UserSettings.settingsText);
             SettingsQuests.Text.Add(UserSettings.settingsText);

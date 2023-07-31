@@ -65,33 +65,13 @@ namespace Fusion
                     var foundContext = modContext.Where(context => Settings.RelationsAdd.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<Relation> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Relations != null)
-                            foreach (var rec in patchRecord.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-                        else if (workingContext.Record.Relations != null)
-                            foreach (var rec in workingContext.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-
-                        // Add All Records
-                        bool Change = false;
+                        state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        Relations NewContainer = new(patchRecord?.Record.Relations, workingContext.Record.Relations);
                         foreach (var context in foundContext)
-                        {
-                            if (context.Record.Relations != null && context.Record.Relations.Count > 0)
-                                foreach (var rec in context.Record.Relations)
-                                    if (!overrideObject.Where(x => x.Equals(rec)).Any())
-                                    {
-                                        overrideObject.Add(rec.DeepCopy());
-                                        Change = true;
-                                    }
-                        }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewContainer.Add(context.Record.Relations);
+                        if (NewContainer.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Relations?.SetTo(overrideObject);
+                            addedRecord.Relations?.SetTo(NewContainer.OverrideObject);
                         }
                     }
                 }
@@ -105,38 +85,13 @@ namespace Fusion
                     var foundContext = modContext.Where(context => Settings.RelationsRemove.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<Relation> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Relations != null)
-                            foreach (var rec in patchRecord.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-                        else if (workingContext.Record.Relations != null)
-                            foreach (var rec in workingContext.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-
-                        // Add All Records
-                        bool Change = false;
-                        foreach (var context in foundContext.Reverse())
-                        {
-                            if (context.Record.Relations != null && context.Record.Relations.Count > 0)
-                                if (originalObject.Record.Relations != null && originalObject.Record.Relations.Count > 0)
-                                    foreach (var rec in originalObject.Record.Relations)
-                                        if (!context.Record.Relations.Where(x => x.Equals(rec)).Any())
-                                        {
-                                            var oFoundRec = overrideObject.Where(x => x.Equals(rec));
-                                            if (oFoundRec.Any())
-                                            {
-                                                overrideObject.Remove(oFoundRec.First());
-                                                Change = true;
-                                            }
-                                        }
-                        }
-
-                        // If changes were made, override and write bac
-                        if (Change)
-                        {
+                        state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        Relations NewContainer = new(patchRecord?.Record.Relations, workingContext.Record.Relations);
+                        foreach (var context in foundContext)
+                            NewContainer.Remove(context.Record.Relations, originalObject.Record.Relations);
+                        if (NewContainer.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Relations.SetTo(overrideObject);
+                            addedRecord.Relations?.SetTo(NewContainer.OverrideObject);
                         }
                     }
                 }
@@ -148,42 +103,15 @@ namespace Fusion
                 {
                     // Get the last overriding context of our element
                     var foundContext = modContext.Where(context => Settings.RelationsChange.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
-
-                    // If we found records to modify
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<Relation> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Relations != null)
-                            foreach (var rec in patchRecord.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-                        else if (workingContext.Record.Relations != null)
-                            foreach (var rec in workingContext.Record.Relations)
-                                overrideObject.Add(rec.DeepCopy());
-
-                        // Add All Records
-                        bool Change = false;
-                        foreach (var context in foundContext.Reverse())
-                        {
-                            if (context.Record.Relations != null && context.Record.Relations.Count > 0)
-                                foreach (var rec in context.Record.Relations)
-                                    if (!(originalObject.Record.Relations?.Contains(rec) ?? false))
-                                    {
-                                        var oFoundRec = overrideObject.Where(x => x.Equals(rec));
-                                        if (oFoundRec.Any() && (originalObject.Record.Relations?.Contains(oFoundRec.First()) ?? true))
-                                        {
-                                            overrideObject.Remove(oFoundRec.First());
-                                            overrideObject.Add(rec.DeepCopy());
-                                            Change = true;
-                                        }
-                                    }
-                        }
-
-                        // If changes were made, override and write bac
-                        if (Change)
-                        {
+                        state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        Relations NewContainer = new(patchRecord?.Record.Relations, workingContext.Record.Relations);
+                        foreach (var context in foundContext)
+                            NewContainer.Change(context.Record.Relations, originalObject.Record.Relations);
+                        if (NewContainer.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Relations?.SetTo(overrideObject);
+                            addedRecord.Relations?.SetTo(NewContainer.OverrideObject);
                         }
                     }
                 }

@@ -90,42 +90,15 @@ namespace Fusion
                     var foundContext = modContext.Where(context => Settings.Keywords.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<IFormLinkGetter<IKeywordGetter>> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<IActivator, IActivatorGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Keywords != null)
-                            foreach (var rec in patchRecord.Record.Keywords)
-                                overrideObject.Add(rec);
-                        else if (workingContext.Record.Keywords != null)
-                            foreach (var rec in workingContext.Record.Keywords)
-                                overrideObject.Add(rec);
-
-                        // Add Records
-                        bool Change = false;
+                        state.LinkCache.TryResolveContext<IActivator, IActivatorGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        Keywords NewKeywords = new(patchRecord?.Record.Keywords, workingContext.Record.Keywords);
                         foreach (var context in foundContext)
-                            if (context.Record.Keywords != null && context.Record.Keywords.Count > 0)
-                                foreach (var rec in context.Record.Keywords)
-                                    if (originalObject.Record.Keywords != null && !originalObject.Record.Keywords.Contains(rec) && !overrideObject.Contains(rec))
-                                    {
-                                        overrideObject.Add(rec);
-                                        Change = true;
-                                    }
-
-                        // Remove Records
+                            NewKeywords.Add(context.Record.Keywords, originalObject.Record.Keywords);
                         foreach (var context in foundContext.Reverse())
-                            if (context.Record.Keywords != null && context.Record.Keywords.Count > 0)
-                                if (originalObject.Record.Keywords != null && originalObject.Record.Keywords.Count > 0 && originalObject.Record.Keywords?.Count > 0)
-                                    foreach (var rec in originalObject.Record.Keywords)
-                                        if (!context.Record.Keywords.Contains(rec) && overrideObject.Contains(rec))
-                                        {
-                                            overrideObject.Remove(rec);
-                                            Change = true;
-                                        }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
+                        if (NewKeywords.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords?.SetTo(overrideObject);
+                            addedRecord.Keywords?.SetTo(NewKeywords.OverrideObject);
                         }
                     }
                 }
@@ -180,8 +153,7 @@ namespace Fusion
                 foreach(var foundContext in modContext.Where(context => Settings.Sounds.Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ActivationSound.Equals(originalObject.Record.ActivationSound)
-                        || !foundContext.Record.LoopingSound.Equals(originalObject.Record.LoopingSound)
-                    )
+                        || !foundContext.Record.LoopingSound.Equals(originalObject.Record.LoopingSound))
                     {
                         // Checks
                         bool Change = false;

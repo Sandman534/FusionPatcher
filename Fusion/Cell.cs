@@ -365,46 +365,15 @@ namespace Fusion
                     var foundContext = modContext.Where(context => Settings.Regions.Contains(context.ModKey) && ((!context.Record.Regions?.Equals(originalObject.Record.Regions) ?? false)));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<IFormLinkGetter<IRegionGetter>> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<ICell, ICellGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Regions != null)
-                            foreach (var rec in patchRecord.Record.Regions)
-                                overrideObject.Add(rec);
-                        else if (workingContext.Record.Regions != null)
-                            foreach (var rec in workingContext.Record.Regions)
-                                overrideObject.Add(rec);
-
-                        // Add Records
-                        bool Change = false;
+                        state.LinkCache.TryResolveContext<ICell, ICellGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        Regions NewRegions = new(patchRecord?.Record.Regions, workingContext.Record.Regions);
                         foreach (var context in foundContext)
-                        {
-                            if (context.Record.Regions != null && context.Record.Regions.Count > 0)
-                                foreach (var rec in context.Record.Regions)
-                                    if (originalObject.Record.Regions != null && !originalObject.Record.Regions.Contains(rec) && !overrideObject.Contains(rec))
-                                    {
-                                        overrideObject.Add(rec);
-                                        Change = true;
-                                    }
-                        }
-
-                        // Remove Records
+                            NewRegions.Add(context.Record.Regions, originalObject.Record.Regions);
                         foreach (var context in foundContext.Reverse())
-                        {
-                            if (context.Record.Regions != null && context.Record.Regions.Count > 0)
-                                if (originalObject.Record.Regions != null && originalObject.Record.Regions.Count > 0 && originalObject.Record.Regions?.Count > 0)
-                                    foreach (var rec in originalObject.Record.Regions)
-                                        if (!context.Record.Regions.Contains(rec) && overrideObject.Contains(rec))
-                                        {
-                                            overrideObject.Remove(rec);
-                                            Change = true;
-                                        }
-                        }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewRegions.Remove(context.Record.Regions, originalObject.Record.Regions);
+                        if (NewRegions.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Regions?.SetTo(overrideObject);
+                            addedRecord.Regions?.SetTo(NewRegions.OverrideObject);
                         }
                     }
                 }
