@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -9,38 +9,24 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class FloraSettings
+    internal class ActivatorPatcher
     {
-        public List<ModKey> Destructible = new();
-        public List<ModKey> Graphics = new();
-        public List<ModKey> Keywords = new();
-        public List<ModKey> Names = new();
-        public List<ModKey> ObjectBounds = new();
-        public List<ModKey> Sounds = new();
-        public List<ModKey> Text = new();
-    }
-    internal class FloraPatcher
-    {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, FloraSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() { 
-                Settings.Destructible, Settings.Graphics, Settings.Keywords, Settings.Names, Settings.ObjectBounds, Settings.Sounds,
-                Settings.Text };
-            HashSet<ModKey> workingModList = new(modList);
-
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Flora().WinningContextOverrides())
+            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sounds,Text");
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Activator().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IFlora, IFloraGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IActivator, IActivatorGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 // Get the base record
-                var originalObject = state.LinkCache.ResolveAllContexts<IFlora, IFloraGetter>(workingContext.Record.FormKey).Last();
+                var originalObject = state.LinkCache.ResolveAllContexts<IActivator, IActivatorGetter>(workingContext.Record.FormKey).Last();
 
                 //==============================================================================================================
                 // Destructible
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Destructible.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Destructible").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Destructible?.Equals(originalObject.Record.Destructible) ?? false)
                     {
@@ -62,7 +48,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Graphics
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Graphics.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Graphics").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false)
                     {
@@ -84,13 +70,13 @@ namespace Fusion
                 //==============================================================================================================
                 // Keywords
                 //==============================================================================================================
-                if (Settings.Keywords.Count > 0)
+                if (Settings.TagCount("Keywords", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Keywords.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && (!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false));
                     if (foundContext.Any())
                     {
-                        state.LinkCache.TryResolveContext<IFlora, IFloraGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        state.LinkCache.TryResolveContext<IActivator, IActivatorGetter>(workingContext.Record.FormKey, out var patchRecord);
                         Keywords NewKeywords = new(patchRecord?.Record.Keywords, workingContext.Record.Keywords);
                         foreach (var context in foundContext)
                             NewKeywords.Add(context.Record.Keywords, originalObject.Record.Keywords);
@@ -106,7 +92,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -128,7 +114,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Object Bounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.ObjectBounds.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("ObjectBounds").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
                     {
@@ -150,20 +136,23 @@ namespace Fusion
                 //==============================================================================================================
                 // Sounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Sounds.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Sounds").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.HarvestSound.Equals(originalObject.Record.HarvestSound))
+                    if (!foundContext.Record.ActivationSound.Equals(originalObject.Record.ActivationSound)
+                        || !foundContext.Record.LoopingSound.Equals(originalObject.Record.LoopingSound))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.HarvestSound.Equals(workingContext.Record.HarvestSound)) Change = true;
+                        if (!foundContext.Record.ActivationSound.Equals(workingContext.Record.ActivationSound)) Change = true;
+                        if (!foundContext.Record.LoopingSound.Equals(workingContext.Record.LoopingSound)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.HarvestSound != null) overrideObject.HarvestSound.SetTo(foundContext.Record.HarvestSound);
+                            if (foundContext.Record.ActivationSound != null) overrideObject.ActivationSound.SetTo(foundContext.Record.ActivationSound);
+                            if (foundContext.Record.LoopingSound != null) overrideObject.LoopingSound.SetTo(foundContext.Record.LoopingSound);
                         }
                         break;
                     }
@@ -172,7 +161,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Text
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Text").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ActivateTextOverride?.Equals(originalObject.Record.ActivateTextOverride) ?? false)
                     {

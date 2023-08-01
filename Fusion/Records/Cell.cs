@@ -9,33 +9,12 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class CellSettings
-    {
-        public List<ModKey> Acoustic = new();
-        public List<ModKey> Climate = new();
-        public List<ModKey> Encounter = new();
-        public List<ModKey> ImageSpace = new();
-        public List<ModKey> Light = new();
-        public List<ModKey> LockList = new();
-        public List<ModKey> Location = new();
-        public List<ModKey> MiscFlags = new();
-        public List<ModKey> Music = new();
-        public List<ModKey> Names = new();
-        public List<ModKey> Owner = new();
-        public List<ModKey> RecordFlags = new();
-        public List<ModKey> Regions = new();
-        public List<ModKey> Water = new();
-    }
-
     internal class CellPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, CellSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() {
-                Settings.Acoustic, Settings.Climate, Settings.Encounter, Settings.ImageSpace, Settings.Light, Settings.LockList, Settings.Location,
-                Settings.MiscFlags,Settings.Music, Settings.Names, Settings.Owner, Settings.RecordFlags, Settings.Regions, Settings.Water };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("C.Acoustic,C.Climate,C.Encounter,C.ImageSpace,C.Light,C.LockList,C.Location,C.MiscFlags" +
+                ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.Water");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Cell().WinningContextOverrides(state.LinkCache))
             {
                 // Skip record if its not in one of our overwrite mods
@@ -48,7 +27,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Acoustic
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Acoustic.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Acoustic").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.AcousticSpace.Equals(originalObject.Record.AcousticSpace))
                     {
@@ -70,7 +49,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Climate
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Climate.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Climate").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.SkyAndWeatherFromRegion.Equals(originalObject.Record.SkyAndWeatherFromRegion))
                     {
@@ -92,7 +71,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Encounter Zone
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Encounter.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Encounter").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.EncounterZone.Equals(originalObject.Record.EncounterZone))
                     {
@@ -114,7 +93,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Image Space
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.ImageSpace.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.ImageSpace").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ImageSpace.Equals(originalObject.Record.ImageSpace))
                     {
@@ -136,7 +115,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Lighting
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Light.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Light").Contains(context.ModKey)))
                 {
                     if ((!foundContext.Record.Lighting?.Equals(originalObject.Record.Lighting) ?? false)
                         || !foundContext.Record.LightingTemplate.Equals(originalObject.Record.LightingTemplate))
@@ -161,7 +140,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Lock List
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.LockList.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.LockList").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.LockList.Equals(originalObject.Record.LockList))
                     {
@@ -183,7 +162,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Location
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Location.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Location").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Location.Equals(originalObject.Record.Location))
                     {
@@ -205,10 +184,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Misc Flags
                 //==============================================================================================================
-                if (Settings.MiscFlags.Count > 0)
+                if (Settings.TagCount("C.MiscFlags", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.MiscFlags.Contains(context.ModKey) && (!context.Record.Flags.Equals(originalObject.Record.Flags)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && (!context.Record.Flags.Equals(originalObject.Record.Flags)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
@@ -249,7 +228,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Music
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Music.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Music").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Music.Equals(originalObject.Record.Music))
                     {
@@ -271,7 +250,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Name
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Name").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -293,7 +272,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Owner
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Owner.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Owner").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Owner.Equals(originalObject.Record.Owner))
                     {
@@ -315,10 +294,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Record Flags
                 //==============================================================================================================
-                if (Settings.RecordFlags.Count > 0)
+                if (Settings.TagCount("C.RecordFlags", out var FoundKeys1) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.RecordFlags.Contains(context.ModKey) && (!context.Record.MajorFlags.Equals(originalObject.Record.MajorFlags)));
+                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && (!context.Record.MajorFlags.Equals(originalObject.Record.MajorFlags)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
@@ -359,10 +338,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Regions
                 //==============================================================================================================
-                if (Settings.Regions.Count > 0)
+                if (Settings.TagCount("C.Regions", out var FoundKeys2) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Regions.Contains(context.ModKey) && ((!context.Record.Regions?.Equals(originalObject.Record.Regions) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys2.Contains(context.ModKey) && ((!context.Record.Regions?.Equals(originalObject.Record.Regions) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<ICell, ICellGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -381,7 +360,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Water
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Owner.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("C.Water").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Water.Equals(originalObject.Record.Water)
                         || !foundContext.Record.WaterHeight.Equals(originalObject.Record.WaterHeight)

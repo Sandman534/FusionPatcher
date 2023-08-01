@@ -9,20 +9,11 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class QuestSettings
-    {
-        public List<ModKey> Names = new();
-        public List<ModKey> Text = new();
-    }
-
     internal class QuestPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, QuestSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() { 
-                Settings.Names, Settings.Text };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("Names,Text");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Quest().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -35,7 +26,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -57,7 +48,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Text
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Text.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Text").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
                     {

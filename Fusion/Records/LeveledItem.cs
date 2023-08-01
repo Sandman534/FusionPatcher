@@ -9,21 +9,11 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class LeveledItemSettings
-    {
-        public List<ModKey> Delev = new();
-        public List<ModKey> Relev = new();
-        public List<ModKey> ObjectBounds = new();
-    }
-
     internal class LeveledItemPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, LeveledItemSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() {
-                Settings.Delev, Settings.Relev, Settings.ObjectBounds };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("Relev,Delev,ObjectBounds");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.LeveledItem().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -36,10 +26,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Relev
                 //==============================================================================================================
-                if (Settings.Relev.Count > 0)
+                if (Settings.TagCount("Relev", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Relev.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
@@ -77,10 +67,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Delev
                 //==============================================================================================================
-                if (Settings.Delev.Count > 0)
+                if (Settings.TagCount("Relev", out var FoundKeys1) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Delev.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
@@ -123,7 +113,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Object Bounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.ObjectBounds.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("ObjectBounds").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
                     {

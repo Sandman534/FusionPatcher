@@ -11,49 +11,14 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-
-    public class NPCSettings
-    {
-        public List<ModKey> ACBS = new();
-        public List<ModKey> AIData = new();
-        public List<ModKey> AIPackages = new();
-        public List<ModKey> AIPackagesForceAdd = new();
-        public List<ModKey> AIPackagesOverrides = new();
-        public List<ModKey> AttackRace = new();
-        public List<ModKey> Class = new();
-        public List<ModKey> CombatStyle = new();
-        public List<ModKey> CrimeFaction = new();
-        public List<ModKey> DeathItem = new();
-        public List<ModKey> DefaultOutfit = new();
-        public List<ModKey> Factions = new ();
-        public List<ModKey> InventAdd = new();
-        public List<ModKey> InventChange = new();
-        public List<ModKey> InventRemove = new();
-        public List<ModKey> Keywords = new();
-        public List<ModKey> Names = new();
-        public List<ModKey> NpcFacesForceFullImport = new();
-        public List<ModKey> PerksAdd = new ();
-        public List<ModKey> PerksChange = new ();
-        public List<ModKey> PerksRemove = new ();
-        public List<ModKey> Race = new();
-        public List<ModKey> RecordFlags = new();
-        public List<ModKey> Stats = new();
-        public List<ModKey> Voice = new();   
-    }
-
     internal class NPCPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, NPCSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-           List<ModKey> modList = new()
-          {
-                Settings.ACBS,Settings.AIData,Settings.AIPackages,Settings.AIPackagesForceAdd,Settings.AIPackagesOverrides,Settings.AttackRace,
-                Settings.Class, Settings.CombatStyle, Settings.CrimeFaction, Settings.DeathItem, Settings.DefaultOutfit, Settings.Factions,
-                Settings.InventAdd,Settings.InventChange, Settings.InventRemove,Settings.Names, Settings.NpcFacesForceFullImport, Settings.PerksAdd,
-                Settings.PerksChange, Settings.PerksRemove,Settings.Race, Settings.RecordFlags, Settings.Voice, Settings.Keywords
-            };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("Actors.ACBS,Actors.AIData,Actors.AIPackages,Actors.AIPackagesForceAdd,Actors.CombatStyle" +
+                ",Actors.DeathItem,Actors.Factions,Actors.Perks.Add,Actors.Perks.Change,Actors.Perks.Remove,Actors.RecordFlags,Actors.Skeleton" + 
+                ",Actors.Spells,Actors.SpellsForceAdd,Actors.Stats,Actors.Voice,NPC.AIPackageOverrides,NPC.AttackRace,NPC.Class,NPC.CrimeFaction" +
+                ",NPC.DefaultOutfit,NPC.Race,NpcFacesForceFullImport,Invent.Add,Invent.Remove,Invent.Change,Keywords");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -66,7 +31,7 @@ namespace Fusion
                 //==============================================================================================================
                 // ACBS
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.ACBS.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Actors.ACBS").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Configuration.Equals(originalObject.Record.Configuration))
                     {
@@ -88,7 +53,7 @@ namespace Fusion
                 //==============================================================================================================
                 // AI Data
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.AIData.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Actors.AIData").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.AIData.Equals(originalObject.Record.AIData))
                     {
@@ -110,10 +75,10 @@ namespace Fusion
                 //==============================================================================================================
                 // AI Packages
                 //==============================================================================================================
-                if (Settings.AIPackages.Count > 0)
+                if (Settings.TagCount("Actors.AIPackages", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.AIPackages.Contains(context.ModKey) && ((!context.Record.Packages?.Equals(originalObject.Record.Packages) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Packages?.Equals(originalObject.Record.Packages) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -132,10 +97,10 @@ namespace Fusion
                 //==============================================================================================================
                 // AI Packages Force Add
                 //==============================================================================================================
-                if (Settings.AIPackagesForceAdd.Count > 0)
+                if (Settings.TagCount("Actors.AIPackagesForceAdd", out var FoundKeys1) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.AIPackagesForceAdd.Contains(context.ModKey) && ((!context.Record.Packages?.Equals(originalObject.Record.Packages) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && ((!context.Record.Packages?.Equals(originalObject.Record.Packages) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -152,7 +117,7 @@ namespace Fusion
                 //==============================================================================================================
                 // AI Package Overrride
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.AIPackagesOverrides.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.AIPackageOverrides").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.SpectatorOverridePackageList.Equals(originalObject.Record.SpectatorOverridePackageList)
                         || !foundContext.Record.ObserveDeadBodyOverridePackageList.Equals(originalObject.Record.ObserveDeadBodyOverridePackageList)
@@ -183,7 +148,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Attack Race
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.AttackRace.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.AttackRace").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.AttackRace.Equals(originalObject.Record.AttackRace))
                     {
@@ -205,7 +170,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Class
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Class.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.Class").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Class.Equals(originalObject.Record.Class))
                     {
@@ -227,7 +192,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Combat Style
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.CombatStyle.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Actors.CombatStyle").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.CombatStyle.Equals(originalObject.Record.CombatStyle))
                     {
@@ -249,7 +214,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Crime Faction
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.CrimeFaction.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.CrimeFaction").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.CrimeFaction.Equals(originalObject.Record.CrimeFaction))
                     {
@@ -271,7 +236,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Death Items
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.DeathItem.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Actors.DeathItem").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.DeathItem.Equals(originalObject.Record.DeathItem))
                     {
@@ -293,7 +258,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Default Outfit
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.DefaultOutfit.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.DefaultOutfit").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.DefaultOutfit.Equals(originalObject.Record.DefaultOutfit))
                     {
@@ -317,10 +282,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Factions
                 //==============================================================================================================
-                if (Settings.Factions.Count > 0)
+                if (Settings.TagCount("Actors.Factions", out var FoundKeys2) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Factions.Contains(context.ModKey) && ((!context.Record.Factions?.Equals(originalObject.Record.Factions) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys2.Contains(context.ModKey) && ((!context.Record.Factions?.Equals(originalObject.Record.Factions) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -339,10 +304,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Invent Add
                 //==============================================================================================================
-                if (Settings.InventAdd.Count > 0)
+                if (Settings.TagCount("Invent.Add", out var FoundKeys3) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.InventAdd.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys3.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -359,10 +324,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Invent Remove
                 //==============================================================================================================
-                if (Settings.InventRemove.Count > 0)
+                if (Settings.TagCount("Invent.Remove", out var FoundKeys4) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.InventRemove.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys4.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -379,10 +344,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Invent Change
                 //==============================================================================================================
-                if (Settings.InventChange.Count > 0)
+                if (Settings.TagCount("Invent.Change", out var FoundKeys5) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.InventChange.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys5.Contains(context.ModKey) && ((!context.Record.Items?.Equals(originalObject.Record.Items) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -399,10 +364,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Keywords
                 //==============================================================================================================
-                if (Settings.Keywords.Count > 0)
+                if (Settings.TagCount("Keywords", out var FoundKeys6) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Keywords.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys6.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -421,7 +386,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -443,7 +408,7 @@ namespace Fusion
                 //==============================================================================================================
                 // NPC Face Import
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.NpcFacesForceFullImport.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NpcFacesForceFullImport").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.HeadParts.Equals(originalObject.Record.HeadParts)
                         || !foundContext.Record.HairColor.Equals(originalObject.Record.HairColor)
@@ -491,10 +456,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Perk Add
                 //==============================================================================================================
-                if (Settings.PerksAdd.Count > 0)
+                if (Settings.TagCount("Perks.Add", out var FoundKeys7) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.PerksAdd.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys7.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -511,10 +476,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Perk Remove
                 //==============================================================================================================
-                if (Settings.PerksRemove.Count > 0)
+                if (Settings.TagCount("Perks.Remove", out var FoundKeys8) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.PerksRemove.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys8.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -531,10 +496,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Perk Change
                 //==============================================================================================================
-                if (Settings.PerksChange.Count > 0)
+                if (Settings.TagCount("Perks.Change", out var FoundKeys9) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.PerksChange.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys9.Contains(context.ModKey) && ((!context.Record.Perks?.Equals(originalObject.Record.Perks) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<INpc, INpcGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -551,7 +516,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Race
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Race.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("NPC.Race").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Race.Equals(originalObject.Record.Race))
                     {
@@ -573,10 +538,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Record Flags
                 //==============================================================================================================
-                if (Settings.RecordFlags.Count > 0)
+                if (Settings.TagCount("Actors.RecordFlags", out var FoundKeys10) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.RecordFlags.Contains(context.ModKey) && (!context.Record.SkyrimMajorRecordFlags.Equals(originalObject.Record.SkyrimMajorRecordFlags)));
+                    var foundContext = modContext.Where(context => FoundKeys10.Contains(context.ModKey) && (!context.Record.SkyrimMajorRecordFlags.Equals(originalObject.Record.SkyrimMajorRecordFlags)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
@@ -617,7 +582,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Voice
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Voice.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Actors.Voice").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Voice.Equals(originalObject.Record.Voice))
                     {

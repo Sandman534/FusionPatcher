@@ -9,42 +9,32 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class LeveledSpellSettings
+    internal class LeveledNPCPatcher
     {
-        public List<ModKey> Delev = new();
-        public List<ModKey> Relev = new();
-        public List<ModKey> ObjectBounds = new();
-    }
-    
-    internal class LeveledSpellPatcher
-    {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, LeveledSpellSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() {
-                Settings.Delev, Settings.Relev, Settings.ObjectBounds };
-            HashSet<ModKey> workingModList = new(modList);
-
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.LeveledSpell().WinningContextOverrides())
+            HashSet<ModKey> workingModList = Settings.GetModList("Relev,Delev,ObjectBounds");
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.LeveledNpc().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<ILeveledNpc, ILeveledNpcGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 // Get the base record
-                var originalObject = state.LinkCache.ResolveAllContexts<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey).Last();
+                var originalObject = state.LinkCache.ResolveAllContexts<ILeveledNpc, ILeveledNpcGetter>(workingContext.Record.FormKey).Last();
 
                 //==============================================================================================================
                 // Relev
                 //==============================================================================================================
-                if (Settings.Relev.Count > 0)
+                if (Settings.TagCount("Relev", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Relev.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<LeveledSpellEntry> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
+                        ExtendedList<LeveledNpcEntry> overrideObject = new();
+                        if (state.LinkCache.TryResolveContext<ILeveledNpc, ILeveledNpcGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
                             foreach (var rec in patchRecord.Record.Entries)
                                 overrideObject.Add(rec.DeepCopy());
                         else if (workingContext.Record.Entries != null)
@@ -77,15 +67,15 @@ namespace Fusion
                 //==============================================================================================================
                 // Delev
                 //==============================================================================================================
-                if (Settings.Delev.Count > 0)
+                if (Settings.TagCount("Delev", out var FoundKeys1) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Delev.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
                     if (foundContext.Any())
                     {
                         // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<LeveledSpellEntry> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
+                        ExtendedList<LeveledNpcEntry> overrideObject = new();
+                        if (state.LinkCache.TryResolveContext<ILeveledNpc, ILeveledNpcGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
                             foreach (var rec in patchRecord.Record.Entries)
                                 overrideObject.Add(rec.DeepCopy());
                         else if (workingContext.Record.Entries != null)
@@ -123,7 +113,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Object Bounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.ObjectBounds.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("ObjectBounds").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
                     {

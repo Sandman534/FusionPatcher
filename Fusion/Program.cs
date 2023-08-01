@@ -27,57 +27,53 @@ namespace Fusion
         {
             // Get New Settings based on Simple/Advanced
             SettingsUtility NewSettings = new();
-            if (Settings.BashTags)
-                NewSettings.ProcessBashTags(state, Settings);
-
-            // Process User Tags
-            NewSettings.ProcessManualTags(Settings);
+            NewSettings.Process(state, Settings);
 
             // Begin Record Processing
             Console.WriteLine("Processing Activators");
-            ActivatorPatcher.Patch(state, NewSettings.SettingsActivator);
+            ActivatorPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Armors");
-            ArmorPatcher.Patch(state, NewSettings.SettingsArmor);
+            ArmorPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Books");
-            BookPatcher.Patch(state, NewSettings.SettingsBooks);
+            BookPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Cells");
-            CellPatcher.Patch(state, NewSettings.SettingsCells);
+            CellPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Containers");
-            ContainerPatcher.Patch(state, NewSettings.SettingsContainers);
+            ContainerPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Factions");
-            FactionPatcher.Patch(state, NewSettings.SettingsFactions);
+            FactionPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Ingestibles");
-            WeaponPatcher.Patch(state, NewSettings.SettingsWeapons);
+            WeaponPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Leveled Items");
-            LeveledItemPatcher.Patch(state, NewSettings.SettingsLeveledItems);
+            LeveledItemPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Leveled NPCs");
-            LeveledNPCPatcher.Patch(state, NewSettings.SettingsLeveledNPCs);
+            LeveledNPCPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Leveled Spells");
-            LeveledSpellPatcher.Patch(state, NewSettings.SettingsLeveledSpells);
+            LeveledSpellPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Locations");
-            LocationPatcher.Patch(state, NewSettings.SettingsLocations);
+            LocationPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing NPCs");
-            NPCPatcher.Patch(state, NewSettings.SettingsNPCs);
+            NPCPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Perks");
-            PerkPatcher.Patch(state, NewSettings.SettingsPerks);
+            PerkPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Quests");
-            QuestPatcher.Patch(state, NewSettings.SettingsQuests);
+            QuestPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Weapons");
-            WeaponPatcher.Patch(state, NewSettings.SettingsWeapons);
+            WeaponPatcher.Patch(state, NewSettings);
         }
     }
 }

@@ -8,22 +8,11 @@ using Noggog;
 using System.Collections.Immutable;
 namespace Fusion
 {
-    public class LocationSettings
-    {
-        public List<ModKey> Keywords = new();
-        public List<ModKey> Names = new();
-        public List<ModKey> Sounds = new();
-        public List<ModKey> Stats = new();
-    }
-
     internal class LocationPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, LocationSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() { 
-                Settings.Keywords, Settings.Names, Settings.Sounds, Settings.Stats };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("Keywords,Names,Sounds,Stats");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Location().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -36,10 +25,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Keywords
                 //==============================================================================================================
-                if (Settings.Keywords.Count > 0)
+                if (Settings.TagCount("Keywords", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.Keywords.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<ILocation, ILocationGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -58,7 +47,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -80,7 +69,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Sounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Sounds.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Sounds").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Music.Equals(originalObject.Record.Music))
                     {
@@ -102,7 +91,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Stats
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Stats.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Stats").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.ParentLocation.Equals(originalObject.Record.ParentLocation)
                         || !foundContext.Record.WorldLocationMarkerRef.Equals(originalObject.Record.WorldLocationMarkerRef)

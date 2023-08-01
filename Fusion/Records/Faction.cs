@@ -9,22 +9,11 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    public class FactionSettings
-    {
-        public List<ModKey> Names = new();
-        public List<ModKey> RelationsRemove = new();
-        public List<ModKey> RelationsAdd = new();
-        public List<ModKey> RelationsChange = new();
-    }
-
     internal class FactionPatcher
     {
-        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, FactionSettings Settings)
+        public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            List<ModKey> modList = new() { 
-                Settings.Names, Settings.RelationsRemove, Settings.RelationsAdd, Settings.RelationsChange };
-            HashSet<ModKey> workingModList = new(modList);
-
+            HashSet<ModKey> workingModList = Settings.GetModList("Names,Relations.Remove,Relations.Add,Relations.Change");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Faction().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -37,7 +26,7 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.Names.Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
                 {
                     if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
                     {
@@ -59,10 +48,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Relations Add
                 //==============================================================================================================
-                if (Settings.RelationsAdd.Count > 0)
+                if (Settings.TagCount("Invent.Add", out var FoundKeys) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.RelationsAdd.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -79,10 +68,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Relations Remove
                 //==============================================================================================================
-                if (Settings.RelationsRemove.Count > 0)
+                if (Settings.TagCount("Invent.Add", out var FoundKeys1) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.RelationsRemove.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
@@ -99,10 +88,10 @@ namespace Fusion
                 //==============================================================================================================
                 // Relations Change
                 //==============================================================================================================
-                if (Settings.RelationsChange.Count > 0)
+                if (Settings.TagCount("Invent.Add", out var FoundKeys2) > 0)
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Settings.RelationsChange.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
+                    var foundContext = modContext.Where(context => FoundKeys2.Contains(context.ModKey) && ((!context.Record.Relations?.Equals(originalObject.Record.Relations) ?? false)));
                     if (foundContext.Any())
                     {
                         state.LinkCache.TryResolveContext<IFaction, IFactionGetter>(workingContext.Record.FormKey, out var patchRecord);
