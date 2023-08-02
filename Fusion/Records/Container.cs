@@ -56,7 +56,7 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false) Change = true;
+                        if (!foundContext.Record.Model?.Equals(workingContext.Record.Model) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)
@@ -182,7 +182,7 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.VirtualMachineAdapter?.Equals(originalObject.Record.VirtualMachineAdapter) ?? false) Change = true;
+                        if (!foundContext.Record.VirtualMachineAdapter?.Equals(workingContext.Record.VirtualMachineAdapter) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)

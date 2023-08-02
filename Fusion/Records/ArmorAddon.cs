@@ -34,8 +34,8 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.WorldModel?.Equals(originalObject.Record.WorldModel) ?? false) Change = true;
-                        if (!foundContext.Record.FirstPersonModel?.Equals(originalObject.Record.FirstPersonModel) ?? false) Change = true;
+                        if (!foundContext.Record.WorldModel?.Equals(workingContext.Record.WorldModel) ?? false) Change = true;
+                        if (!foundContext.Record.FirstPersonModel?.Equals(workingContext.Record.FirstPersonModel) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)

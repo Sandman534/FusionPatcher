@@ -422,14 +422,14 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.HeadParts.Equals(originalObject.Record.HeadParts)) Change = true;
-                        if (!foundContext.Record.HairColor.Equals(originalObject.Record.HairColor)) Change = true;
-                        if (!foundContext.Record.HeadTexture.Equals(originalObject.Record.HeadTexture)) Change = true;
-                        if (!foundContext.Record.TextureLighting.Equals(originalObject.Record.TextureLighting)) Change = true;
-                        if (!foundContext.Record.FaceMorph?.Equals(originalObject.Record.FaceMorph) ?? false) Change = true;
-                        if (!foundContext.Record.FaceParts?.Equals(originalObject.Record.FaceParts) ?? false) Change = true;
-                        if (!foundContext.Record.TintLayers.Equals(originalObject.Record.TintLayers)) Change = true;
-                        if (!foundContext.Record.Weight.Equals(originalObject.Record.Weight)) Change = true;
+                        if (!foundContext.Record.HeadParts.Equals(workingContext.Record.HeadParts)) Change = true;
+                        if (!foundContext.Record.HairColor.Equals(workingContext.Record.HairColor)) Change = true;
+                        if (!foundContext.Record.HeadTexture.Equals(workingContext.Record.HeadTexture)) Change = true;
+                        if (!foundContext.Record.TextureLighting.Equals(workingContext.Record.TextureLighting)) Change = true;
+                        if (!foundContext.Record.FaceMorph?.Equals(workingContext.Record.FaceMorph) ?? false) Change = true;
+                        if (!foundContext.Record.FaceParts?.Equals(workingContext.Record.FaceParts) ?? false) Change = true;
+                        if (!foundContext.Record.TintLayers.Equals(workingContext.Record.TintLayers)) Change = true;
+                        if (!foundContext.Record.Weight.Equals(workingContext.Record.Weight)) Change = true;
 
                         // Copy Records
                         if (Change)

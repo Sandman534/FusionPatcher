@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -9,19 +9,19 @@ using System.Collections.Immutable;
 
 namespace Fusion
 {
-    internal class ArmorPatcher
+    internal class AmmunitionPatcher
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Enchantments,Graphics,Keywords,Names,ObjectBounds,Sounds,Stats,Text");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Armor().WinningContextOverrides())
+            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sounds,Stats,Text");
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Ammunition().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IArmor, IArmorGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IAmmunition, IAmmunitionGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 // Get the base record
-                var originalObject = state.LinkCache.ResolveAllContexts<IArmor, IArmorGetter>(workingContext.Record.FormKey).Last();
+                var originalObject = state.LinkCache.ResolveAllContexts<IAmmunition, IAmmunitionGetter>(workingContext.Record.FormKey).Last();
 
                 //==============================================================================================================
                 // Destructible
@@ -46,50 +46,25 @@ namespace Fusion
                 }
 
                 //==============================================================================================================
-                // Enchantments
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Enchantments").Contains(context.ModKey)))
-                {
-                    if (!foundContext.Record.ObjectEffect?.Equals(originalObject.Record.ObjectEffect) ?? false)
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.ObjectEffect?.Equals(workingContext.Record.ObjectEffect) ?? false) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectEffect != null) overrideObject.ObjectEffect?.SetTo(foundContext.Record.ObjectEffect);
-                        }
-                        break;
-                    }
-                }
-
-                //==============================================================================================================
                 // Graphics
                 //==============================================================================================================
                 foreach(var foundContext in modContext.Where(context => Settings.HasTag("Graphics").Contains(context.ModKey)))
                 {
-                    if ((!foundContext.Record.WorldModel?.Equals(originalObject.Record.WorldModel) ?? false)
-                        || !foundContext.Record.Armature.Equals(originalObject.Record.Armature))
+                    if ((!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false)
+                        || (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.WorldModel?.Equals(workingContext.Record.WorldModel) ?? false) Change = true;
-                        if (!foundContext.Record.Armature.Equals(workingContext.Record.Armature)) Change = true;
+                        if (!foundContext.Record.Model?.Equals(workingContext.Record.Model) ?? false) Change = true;
+                        if (!foundContext.Record.Icons?.Equals(workingContext.Record.Icons) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.WorldModel?.Male != null) overrideObject.WorldModel?.Male?.DeepCopyIn(foundContext.Record.WorldModel.Male);
-                            if (foundContext.Record.WorldModel?.Female != null) overrideObject.WorldModel?.Female?.DeepCopyIn(foundContext.Record.WorldModel.Female);
-                            if (foundContext.Record.Armature.Count > 0) {
-                                overrideObject.Armature.Clear();
-                                foreach (var armor in foundContext.Record.Armature) overrideObject.Armature.Add(armor); }
+                            if (foundContext.Record.Model != null) overrideObject.Model?.DeepCopyIn(foundContext.Record.Model);
+                            if (foundContext.Record.Icons != null) overrideObject.Icons?.DeepCopyIn(foundContext.Record.Icons);
                         }
                         break;
                     }
@@ -104,7 +79,7 @@ namespace Fusion
                     var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Keywords?.Equals(originalObject.Record.Keywords) ?? false)));
                     if (foundContext.Any())
                     {
-                        state.LinkCache.TryResolveContext<IArmor, IArmorGetter>(workingContext.Record.FormKey, out var patchRecord);
+                        state.LinkCache.TryResolveContext<IWeapon, IWeaponGetter>(workingContext.Record.FormKey, out var patchRecord);
                         Keywords NewKeywords = new(patchRecord?.Record.Keywords, workingContext.Record.Keywords);
                         foreach (var context in foundContext)
                             NewKeywords.Add(context.Record.Keywords, originalObject.Record.Keywords);
@@ -134,6 +109,28 @@ namespace Fusion
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.Name != null) overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                        }
+                        break;
+                    }
+                }
+
+                //==============================================================================================================
+                // Object Bounds
+                //==============================================================================================================
+                foreach(var foundContext in modContext.Where(context => Settings.HasTag("ObjectBounds").Contains(context.ModKey)))
+                {
+                    if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
+                    {
+                        // Checks
+                        bool Change = false;
+                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
+                        if (!foundContext.Record.ObjectBounds?.Equals(workingContext.Record.ObjectBounds) ?? false) Change = true;
+
+                        // Copy Records
+                        if (Change)
+                        {
+                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                            if (foundContext.Record.ObjectBounds != null) overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
                         }
                         break;
                     }
@@ -170,32 +167,26 @@ namespace Fusion
                 foreach(var foundContext in modContext.Where(context => Settings.HasTag("Stats").Contains(context.ModKey)))
                 {
                     if ((!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false)
+                        || !foundContext.Record.Damage.Equals(originalObject.Record.Damage)
                         || !foundContext.Record.Value.Equals(originalObject.Record.Value)
-                        || !foundContext.Record.Weight.Equals(originalObject.Record.Weight)
-                        || !foundContext.Record.ArmorRating.Equals(originalObject.Record.ArmorRating)
-                        || !foundContext.Record.BashImpactDataSet.Equals(originalObject.Record.BashImpactDataSet)
-                        || !foundContext.Record.AlternateBlockMaterial.Equals(originalObject.Record.AlternateBlockMaterial))
+                        || !foundContext.Record.Weight.Equals(originalObject.Record.Weight))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
                         if (!foundContext.Record.EditorID?.Equals(workingContext.Record.EditorID) ?? false) Change = true;
+                        if (!foundContext.Record.Damage.Equals(workingContext.Record.Damage)) Change = true;
                         if (!foundContext.Record.Value.Equals(workingContext.Record.Value)) Change = true;
                         if (!foundContext.Record.Weight.Equals(workingContext.Record.Weight)) Change = true;
-                        if (!foundContext.Record.ArmorRating.Equals(workingContext.Record.ArmorRating)) Change = true;
-                        if (!foundContext.Record.BashImpactDataSet.Equals(workingContext.Record.BashImpactDataSet)) Change = true;
-                        if (!foundContext.Record.AlternateBlockMaterial.Equals(workingContext.Record.AlternateBlockMaterial)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.EditorID != null) overrideObject.EditorID = foundContext.Record.EditorID;
-                            if (overrideObject.Value != foundContext.Record.Value) overrideObject.Value = foundContext.Record.Value;
-                            if (overrideObject.Weight != foundContext.Record.Weight) overrideObject.Weight = foundContext.Record.Weight;
-                            if (overrideObject.ArmorRating != foundContext.Record.ArmorRating) overrideObject.ArmorRating = foundContext.Record.ArmorRating;
-                            if (foundContext.Record.BashImpactDataSet != null) overrideObject.BashImpactDataSet.SetTo(foundContext.Record.BashImpactDataSet);
-                            if (foundContext.Record.AlternateBlockMaterial != null) overrideObject.AlternateBlockMaterial.SetTo(foundContext.Record.AlternateBlockMaterial);
+                            if (foundContext.Record.Damage != overrideObject.Damage) overrideObject.Damage = foundContext.Record.Damage;
+                            if (foundContext.Record.Value != overrideObject.Value) overrideObject.Value = foundContext.Record.Value;
+                            if (foundContext.Record.Weight != overrideObject.Weight) overrideObject.Weight = foundContext.Record.Weight;
                             
                         }
                         break;
@@ -207,23 +198,27 @@ namespace Fusion
                 //==============================================================================================================
                 foreach(var foundContext in modContext.Where(context => Settings.HasTag("Text").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
+
+                    if ((!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
+                        || (!foundContext.Record.ShortName?.Equals(originalObject.Record.Description) ?? false))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Description?.Equals(workingContext.Record.Description) ?? false) Change = true;
+                        if (!foundContext.Record.Description?.Equals(workingContext.Record.Description) ?? originalObject.Record.Description != null) Change = true;
+                        if (!foundContext.Record.ShortName?.Equals(workingContext.Record.Description) ?? originalObject.Record.Description != null) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.Description != null) overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
+                            if (foundContext.Record.ShortName != null) overrideObject.ShortName = foundContext.Record.ShortName;
                         }
                         break;
                     }
                 }
-
+            
             }
         }
     }

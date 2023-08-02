@@ -100,9 +100,9 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.ParentLocation.Equals(originalObject.Record.ParentLocation)) Change = true;
-                        if (!foundContext.Record.WorldLocationMarkerRef.Equals(originalObject.Record.WorldLocationMarkerRef))  Change = true;
-                        if (!foundContext.Record.WorldLocationRadius.Equals(originalObject.Record.WorldLocationRadius))  Change = true;
+                        if (!foundContext.Record.ParentLocation.Equals(workingContext.Record.ParentLocation)) Change = true;
+                        if (!foundContext.Record.WorldLocationMarkerRef.Equals(workingContext.Record.WorldLocationMarkerRef))  Change = true;
+                        if (!foundContext.Record.WorldLocationRadius.Equals(workingContext.Record.WorldLocationRadius))  Change = true;
 
                         // Copy Records
                         if (Change)

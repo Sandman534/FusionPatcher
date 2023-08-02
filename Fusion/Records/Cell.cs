@@ -123,7 +123,7 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Lighting?.Equals(originalObject.Record.Lighting) ?? false) Change = true;
+                        if (!foundContext.Record.Lighting?.Equals(workingContext.Record.Lighting) ?? false) Change = true;
                         if (!foundContext.Record.LightingTemplate.Equals(workingContext.Record.LightingTemplate)) Change = true;
 
                         // Copy Records
@@ -370,10 +370,10 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Water.Equals(originalObject.Record.Water)) Change = true;
-                        if (!foundContext.Record.WaterHeight.Equals(originalObject.Record.WaterHeight)) Change = true;
-                        if (!foundContext.Record.WaterNoiseTexture?.Equals(originalObject.Record.WaterNoiseTexture) ?? false) Change = true;
-                        if (!foundContext.Record.WaterEnvironmentMap?.Equals(originalObject.Record.WaterEnvironmentMap) ?? false) Change = true;
+                        if (!foundContext.Record.Water.Equals(workingContext.Record.Water)) Change = true;
+                        if (!foundContext.Record.WaterHeight.Equals(workingContext.Record.WaterHeight)) Change = true;
+                        if (!foundContext.Record.WaterNoiseTexture?.Equals(workingContext.Record.WaterNoiseTexture) ?? false) Change = true;
+                        if (!foundContext.Record.WaterEnvironmentMap?.Equals(workingContext.Record.WaterEnvironmentMap) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)

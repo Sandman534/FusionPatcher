@@ -79,9 +79,9 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false) Change = true;
-                        if (!foundContext.Record.FirstPersonModel.Equals(originalObject.Record.FirstPersonModel)) Change = true;
-                        if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false) Change = true;
+                        if (!foundContext.Record.Model?.Equals(workingContext.Record.Model) ?? false) Change = true;
+                        if (!foundContext.Record.FirstPersonModel.Equals(workingContext.Record.FirstPersonModel)) Change = true;
+                        if (!foundContext.Record.Icons?.Equals(workingContext.Record.Icons) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)
@@ -180,16 +180,16 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.AttackSound.Equals(originalObject.Record.AttackSound)) Change = true;
-                        if (!foundContext.Record.AttackSound2D.Equals(originalObject.Record.AttackSound2D)) Change = true;
-                        if (!foundContext.Record.AttackLoopSound.Equals(originalObject.Record.AttackLoopSound)) Change = true;
-                        if (!foundContext.Record.AttackFailSound.Equals(originalObject.Record.AttackFailSound)) Change = true;
-                        if (!foundContext.Record.IdleSound.Equals(originalObject.Record.IdleSound)) Change = true;
-                        if (!foundContext.Record.EquipSound.Equals(originalObject.Record.EquipSound)) Change = true;
-                        if (!foundContext.Record.UnequipSound.Equals(originalObject.Record.UnequipSound)) Change = true;
-                        if (!foundContext.Record.PickUpSound.Equals(originalObject.Record.PickUpSound)) Change = true;
-                        if (!foundContext.Record.PutDownSound.Equals(originalObject.Record.PutDownSound)) Change = true;
-                        if (!foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel)) Change = true;
+                        if (!foundContext.Record.AttackSound.Equals(workingContext.Record.AttackSound)) Change = true;
+                        if (!foundContext.Record.AttackSound2D.Equals(workingContext.Record.AttackSound2D)) Change = true;
+                        if (!foundContext.Record.AttackLoopSound.Equals(workingContext.Record.AttackLoopSound)) Change = true;
+                        if (!foundContext.Record.AttackFailSound.Equals(workingContext.Record.AttackFailSound)) Change = true;
+                        if (!foundContext.Record.IdleSound.Equals(workingContext.Record.IdleSound)) Change = true;
+                        if (!foundContext.Record.EquipSound.Equals(workingContext.Record.EquipSound)) Change = true;
+                        if (!foundContext.Record.UnequipSound.Equals(workingContext.Record.UnequipSound)) Change = true;
+                        if (!foundContext.Record.PickUpSound.Equals(workingContext.Record.PickUpSound)) Change = true;
+                        if (!foundContext.Record.PutDownSound.Equals(workingContext.Record.PutDownSound)) Change = true;
+                        if (!foundContext.Record.DetectionSoundLevel.Equals(workingContext.Record.DetectionSoundLevel)) Change = true;
 
                         // Copy Records
                         if (Change)
@@ -226,13 +226,13 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.EditorID?.Equals(originalObject.Record.EditorID) ?? false) Change = true;
-                        if (!foundContext.Record.Data?.Equals(originalObject.Record.Data) ?? false) Change = true;
-                        if (!foundContext.Record.Critical?.Equals(originalObject.Record.Critical) ?? false) Change = true;
-                        if (!foundContext.Record.BasicStats?.Equals(originalObject.Record.BasicStats) ?? false) Change = true;
-                        if (!foundContext.Record.ImpactDataSet.Equals(originalObject.Record.ImpactDataSet)) Change = true;
-                        if (!foundContext.Record.AlternateBlockMaterial.Equals(originalObject.Record.AlternateBlockMaterial)) Change = true;
-                        if (!foundContext.Record.DetectionSoundLevel.Equals(originalObject.Record.DetectionSoundLevel)) Change = true;
+                        if (!foundContext.Record.EditorID?.Equals(workingContext.Record.EditorID) ?? false) Change = true;
+                        if (!foundContext.Record.Data?.Equals(workingContext.Record.Data) ?? false) Change = true;
+                        if (!foundContext.Record.Critical?.Equals(workingContext.Record.Critical) ?? false) Change = true;
+                        if (!foundContext.Record.BasicStats?.Equals(workingContext.Record.BasicStats) ?? false) Change = true;
+                        if (!foundContext.Record.ImpactDataSet.Equals(workingContext.Record.ImpactDataSet)) Change = true;
+                        if (!foundContext.Record.AlternateBlockMaterial.Equals(workingContext.Record.AlternateBlockMaterial)) Change = true;
+                        if (!foundContext.Record.DetectionSoundLevel.Equals(workingContext.Record.DetectionSoundLevel)) Change = true;
 
                         // Copy Records
                         if (Change)

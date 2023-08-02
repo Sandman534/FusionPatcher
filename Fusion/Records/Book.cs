@@ -56,9 +56,9 @@ namespace Fusion
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Model?.Equals(originalObject.Record.Model) ?? false) Change = true;
-                        if (!foundContext.Record.InventoryArt.Equals(originalObject.Record.InventoryArt)) Change = true;
-                        if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false) Change = true;
+                        if (!foundContext.Record.Model?.Equals(workingContext.Record.Model) ?? false) Change = true;
+                        if (!foundContext.Record.InventoryArt.Equals(workingContext.Record.InventoryArt)) Change = true;
+                        if (!foundContext.Record.Icons?.Equals(workingContext.Record.Icons) ?? false) Change = true;
 
                         // Copy Records
                         if (Change)
