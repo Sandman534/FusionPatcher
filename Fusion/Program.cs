@@ -33,8 +33,12 @@ namespace Fusion
             Console.WriteLine("Processing Activators");
             ActivatorPatcher.Patch(state, NewSettings);
 
+            Console.WriteLine("Processing Ammunition");
+            AmmunitionPatcher.Patch(state, NewSettings);
+
             Console.WriteLine("Processing Armors");
             ArmorPatcher.Patch(state, NewSettings);
+            ArmorAddonPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Books");
             BookPatcher.Patch(state, NewSettings);
@@ -47,6 +51,9 @@ namespace Fusion
 
             Console.WriteLine("Processing Factions");
             FactionPatcher.Patch(state, NewSettings);
+
+            Console.WriteLine("Processing Flora");
+            FloraPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Ingestibles");
             WeaponPatcher.Patch(state, NewSettings);
@@ -72,7 +79,7 @@ namespace Fusion
             Console.WriteLine("Processing Quests");
             QuestPatcher.Patch(state, NewSettings);
 
-            Console.WriteLine("Processing Quests");
+            Console.WriteLine("Processing Scrolls");
             ScrollPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Weapons");
