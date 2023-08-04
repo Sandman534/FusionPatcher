@@ -5,27 +5,27 @@ using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
 using System.Collections.Immutable;
-
+using System.Drawing;
 namespace Fusion;
 
 public static class Compare
 {
-    public static bool NotEqual(IModelGetter? Model1, IModelGetter? Model2)
+    public static bool NotEqual(IModelGetter? Record1, IModelGetter? Record2)
     {
         // Null Test
-        if (NullTest(Model1,Model2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
         // Filename Test
-        if (Model1?.File.RawPath != Model2?.File.RawPath)
+        if (Record1?.File.RawPath != Record2?.File.RawPath)
             return true;    
 
         // Alternate Texture Test
-        if (Model1?.AlternateTextures != null && Model2?.AlternateTextures != null)
+        if (Record1?.AlternateTextures != null && Record2?.AlternateTextures != null)
         {
             bool bTexture = false;
-            if (Model1.AlternateTextures.Count == Model1.AlternateTextures.Count)
-                foreach (var tex in Model1.AlternateTextures)
-                    if (!Model2.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+            if (Record1.AlternateTextures.Count == Record1.AlternateTextures.Count)
+                foreach (var tex in Record1.AlternateTextures)
+                    if (!Record2.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
                         bTexture = true;
 
             return bTexture;
@@ -34,397 +34,629 @@ public static class Compare
         return false;
     }
 
-    public static bool NotEqual(IIconsGetter? Icon1, IIconsGetter? Icon2)
+    public static bool NotEqual(IIconsGetter? Record1, IIconsGetter? Record2)
     {
         // Null Test
-        if (NullTest(Icon1,Icon2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Icon1?.LargeIconFilename.RawPath != Icon2?.LargeIconFilename.RawPath)
+        if (Record1?.LargeIconFilename.RawPath != Record2?.LargeIconFilename.RawPath)
             return true;
-        if (Icon1?.SmallIconFilename?.RawPath != Icon2?.SmallIconFilename?.RawPath)
+        if (Record1?.SmallIconFilename?.RawPath != Record2?.SmallIconFilename?.RawPath)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(IDestructibleGetter? Dest1, IDestructibleGetter? Dest2)
+    public static bool NotEqual(IDestructibleGetter? Record1, IDestructibleGetter? Record2)
     {
         // Null Test
-        if (NullTest(Dest1,Dest2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Dest1?.Data?.Health != Dest2?.Data?.Health)
+        if (Record1?.Data?.Health != Record2?.Data?.Health)
             return true;
-        if (Dest1?.Data?.DESTCount != Dest2?.Data?.DESTCount)
+        if (Record1?.Data?.DESTCount != Record2?.Data?.DESTCount)
             return true;
-        if (Dest1?.Data?.VATSTargetable != Dest2?.Data?.VATSTargetable)
+        if (Record1?.Data?.VATSTargetable != Record2?.Data?.VATSTargetable)
             return true;
 
         return false;
     }
     
-    public static bool NotEqual(ITranslatedStringGetter? Name1, ITranslatedStringGetter? Name2)
+    public static bool NotEqual(ITranslatedStringGetter? Record1, ITranslatedStringGetter? Record2)
     {
         // Null Test
-        if (NullTest(Name1,Name2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Name1?.String != Name2?.String)
+        if (Record1?.String != Record2?.String)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(IObjectBoundsGetter? Obj1, IObjectBoundsGetter? Obj2)
+    public static bool NotEqual(IObjectBoundsGetter? Record1, IObjectBoundsGetter? Record2)
     {
         // Null Test
-        if (NullTest(Obj1,Obj2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Obj1?.First.X != Obj2?.First.X
-            || Obj1?.First.Y != Obj2?.First.Y
-            || Obj1?.First.Z != Obj2?.First.Z)
+        if (Record1?.First.X != Record2?.First.X
+            || Record1?.First.Y != Record2?.First.Y
+            || Record1?.First.Z != Record2?.First.Z)
             return true;
 
-        if (Obj1?.Second.X != Obj2?.Second.X
-            || Obj1?.Second.Y != Obj2?.Second.Y
-            || Obj1?.Second.Z != Obj2?.Second.Z)
+        if (Record1?.Second.X != Record2?.Second.X
+            || Record1?.Second.Y != Record2?.Second.Y
+            || Record1?.Second.Z != Record2?.Second.Z)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(IAIDataGetter? AI1, IAIDataGetter? AI2)
+    public static bool NotEqual(IAIDataGetter? Record1, IAIDataGetter? Record2)
     {
         // Null Test
-        if (NullTest(AI1,AI2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (AI1?.Aggression != AI2?.Aggression
-            || AI1?.Confidence != AI2?.Confidence
-            || AI1?.EnergyLevel != AI2?.EnergyLevel
-            || AI1?.Responsibility != AI2?.Responsibility
-            || AI1?.Mood != AI2?.Mood
-            || AI1?.Assistance != AI2?.Assistance)
+        if (Record1?.Aggression != Record2?.Aggression
+            || Record1?.Confidence != Record2?.Confidence
+            || Record1?.EnergyLevel != Record2?.EnergyLevel
+            || Record1?.Responsibility != Record2?.Responsibility
+            || Record1?.Mood != Record2?.Mood
+            || Record1?.Assistance != Record2?.Assistance)
             return true;
 
-        if (AI1?.AggroRadiusBehavior != AI2?.AggroRadiusBehavior
-            || AI1?.Warn != AI2?.Warn
-            || AI1?.WarnOrAttack != AI2?.WarnOrAttack
-            || AI1?.Attack != AI2?.Attack)
+        if (Record1?.AggroRadiusBehavior != Record2?.AggroRadiusBehavior
+            || Record1?.Warn != Record2?.Warn
+            || Record1?.WarnOrAttack != Record2?.WarnOrAttack
+            || Record1?.Attack != Record2?.Attack)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(INpcConfigurationGetter? Con1, INpcConfigurationGetter? Con2)
+    public static bool NotEqual(INpcConfigurationGetter? Record1, INpcConfigurationGetter? Record2)
     {
         // Null Test
-        if (NullTest(Con1,Con2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Con1?.MagickaOffset != Con2?.MagickaOffset
-            || Con1?.StaminaOffset != Con2?.StaminaOffset
-            || Con1?.Level != Con2?.Level
-            || Con1?.CalcMinLevel != Con2?.CalcMinLevel
-            || Con1?.CalcMaxLevel != Con2?.CalcMaxLevel
-            || Con1?.SpeedMultiplier != Con2?.SpeedMultiplier
-            || Con1?.DispositionBase != Con2?.DispositionBase
-            || Con1?.TemplateFlags != Con2?.TemplateFlags
-            || Con1?.HealthOffset != Con2?.HealthOffset
-            || Con1?.BleedoutOverride != Con2?.BleedoutOverride)
+        // Values
+        if (Record1?.MagickaOffset != Record2?.MagickaOffset
+            || Record1?.StaminaOffset != Record2?.StaminaOffset
+            || Record1?.Level != Record2?.Level
+            || Record1?.CalcMinLevel != Record2?.CalcMinLevel
+            || Record1?.CalcMaxLevel != Record2?.CalcMaxLevel
+            || Record1?.SpeedMultiplier != Record2?.SpeedMultiplier
+            || Record1?.DispositionBase != Record2?.DispositionBase
+            || Record1?.TemplateFlags != Record2?.TemplateFlags
+            || Record1?.HealthOffset != Record2?.HealthOffset
+            || Record1?.BleedoutOverride != Record2?.BleedoutOverride)
             return true;
 
-        foreach (var flag in Enums<NpcConfiguration.Flag>.Values)
-        {
-            if(Con1 != null && Con2 != null && Con1.Flags.HasFlag(flag) && !Con2.Flags.HasFlag(flag)) return true;
-            if(Con1 != null && Con2 != null && !Con1.Flags.HasFlag(flag) && Con2.Flags.HasFlag(flag)) return true;
-        }
-
-        return false;
+        // Record Flags
+        return NotEqual(Record1?.Flags, Record2?.Flags);
     }
 
-    public static bool NotEqual(ICellLightingGetter? Light1, ICellLightingGetter? Light2)
+    public static bool NotEqual(ICellLightingGetter? Record1, ICellLightingGetter? Record2)
     {
         // Null Test
-        if (NullTest(Light1,Light2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
         // Colors
-        if (Light1 != null && Light2 != null)
-        {
-            if (Light1.AmbientColor.R != Light2.AmbientColor.R || Light1.AmbientColor.G != Light2.AmbientColor.G || Light1.AmbientColor.B != Light2.AmbientColor.B)
+        if (Record1 != null && Record2 != null)
+            if (Record1.AmbientColor.ToArgb != Record2.AmbientColor.ToArgb
+                || Record1.DirectionalColor.ToArgb != Record2.DirectionalColor.ToArgb
+                || Record1.FogNearColor.ToArgb != Record2.FogNearColor.ToArgb
+                || Record1.FogFarColor.ToArgb != Record2.FogFarColor.ToArgb)
                 return true;
-            if (Light1.DirectionalColor.R != Light2.DirectionalColor.R || Light1.DirectionalColor.G != Light2.DirectionalColor.G || Light1.DirectionalColor.B != Light2.DirectionalColor.B)
-                return true;
-            if (Light1.FogNearColor.R != Light2.FogNearColor.R || Light1.FogNearColor.G != Light2.FogNearColor.G || Light1.FogNearColor.B != Light2.FogNearColor.B)
-                return true;
-            if (Light1.FogFarColor.R != Light2.FogFarColor.R || Light1.FogFarColor.G != Light2.FogFarColor.G || Light1.FogFarColor.B != Light2.FogFarColor.B)
-                return true;
-        }
 
         // Ambient Colors
-        if (Light1 != null && Light2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            if (Light1.AmbientColors.Specular.R != Light2.AmbientColors.Specular.R || Light1.AmbientColors.Specular.G != Light2.AmbientColors.Specular.G || Light1.AmbientColors.Specular.B != Light2.AmbientColors.Specular.B)
+            if (Record1.AmbientColors.Specular.ToArgb != Record2.AmbientColors.Specular.ToArgb)
                 return true;
-            if (Light1.AmbientColors.Scale != Light2.AmbientColors.Scale)
+            if (Record1.AmbientColors.Scale != Record2.AmbientColors.Scale)
                 return true;
-            if (Light1.AmbientColors.DirectionalXPlus.R != Light2.AmbientColors.DirectionalXPlus.R || Light1.AmbientColors.DirectionalXPlus.G != Light2.AmbientColors.DirectionalXPlus.G || Light1.AmbientColors.DirectionalXPlus.B != Light2.AmbientColors.DirectionalXPlus.B)
-                return true;
-            if (Light1.AmbientColors.DirectionalXMinus.R != Light2.AmbientColors.DirectionalXMinus.R || Light1.AmbientColors.DirectionalXMinus.G != Light2.AmbientColors.DirectionalXMinus.G || Light1.AmbientColors.DirectionalXMinus.B != Light2.AmbientColors.DirectionalXMinus.B)
-                return true;
-            if (Light1.AmbientColors.DirectionalYPlus.R != Light2.AmbientColors.DirectionalYPlus.R || Light1.AmbientColors.DirectionalYPlus.G != Light2.AmbientColors.DirectionalYPlus.G || Light1.AmbientColors.DirectionalYPlus.B != Light2.AmbientColors.DirectionalYPlus.B)
-                return true;
-            if (Light1.AmbientColors.DirectionalYMinus.R != Light2.AmbientColors.DirectionalYMinus.R || Light1.AmbientColors.DirectionalYMinus.G != Light2.AmbientColors.DirectionalYMinus.G || Light1.AmbientColors.DirectionalYMinus.B != Light2.AmbientColors.DirectionalYMinus.B)
-                return true;
-            if (Light1.AmbientColors.DirectionalZPlus.R != Light2.AmbientColors.DirectionalZPlus.R || Light1.AmbientColors.DirectionalZPlus.G != Light2.AmbientColors.DirectionalZPlus.G || Light1.AmbientColors.DirectionalZPlus.B != Light2.AmbientColors.DirectionalZPlus.B)
-                return true;
-            if (Light1.AmbientColors.DirectionalZMinus.R != Light2.AmbientColors.DirectionalZMinus.R || Light1.AmbientColors.DirectionalZMinus.G != Light2.AmbientColors.DirectionalZMinus.G || Light1.AmbientColors.DirectionalZMinus.B != Light2.AmbientColors.DirectionalZMinus.B)
+            if (Record1.AmbientColors.DirectionalXPlus.ToArgb != Record2.AmbientColors.DirectionalXPlus.ToArgb
+                || Record1.AmbientColors.DirectionalXMinus.ToArgb != Record2.AmbientColors.DirectionalXMinus.ToArgb
+                || Record1.AmbientColors.DirectionalYPlus.ToArgb != Record2.AmbientColors.DirectionalYPlus.ToArgb
+                || Record1.AmbientColors.DirectionalYMinus.ToArgb != Record2.AmbientColors.DirectionalYMinus.ToArgb
+                || Record1.AmbientColors.DirectionalZPlus.ToArgb != Record2.AmbientColors.DirectionalZPlus.ToArgb
+                || Record1.AmbientColors.DirectionalZMinus.ToArgb != Record2.AmbientColors.DirectionalZMinus.ToArgb)
                 return true;
         }
 
         // Values
-        if (Light1 != null && Light2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            if (Light1.FogNear != Light2.FogNear || Light1.FogFar != Light2.FogFar || Light1.FogClipDistance != Light2.FogClipDistance || Light1.FogPower != Light2.FogPower || Light1.FogMax != Light2.FogMax)
+            if (Record1.FogNear != Record2.FogNear || Record1.FogFar != Record2.FogFar || Record1.FogClipDistance != Record2.FogClipDistance || Record1.FogPower != Record2.FogPower || Record1.FogMax != Record2.FogMax)
                 return true;
-            if (Light1.DirectionalRotationXY != Light2.DirectionalRotationXY || Light1.DirectionalRotationZ != Light2.DirectionalRotationZ || Light1.DirectionalFade != Light2.DirectionalFade)
+            if (Record1.DirectionalRotationXY != Record2.DirectionalRotationXY || Record1.DirectionalRotationZ != Record2.DirectionalRotationZ || Record1.DirectionalFade != Record2.DirectionalFade)
                 return true;
-            if (Light1.LightFadeBegin != Light2.LightFadeBegin || Light1.LightFadeEnd != Light2.LightFadeEnd)
+            if (Record1.LightFadeBegin != Record2.LightFadeBegin || Record1.LightFadeEnd != Record2.LightFadeEnd)
                 return true;
         }
 
         // Inherits
-        if (Light1 != null && Light2 != null)
-            foreach (var flag in Enums<CellLighting.Inherit>.Values)
+        return NotEqual(Record1?.Inherits, Record2?.Inherits);
+    }
+
+    public static bool NotEqual(IArmorModelGetter? Record1, IArmorModelGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1 != null && Record2 != null)
+        {
+            if (Record1.Model?.File.RawPath != Record2.Model?.File.RawPath)
+                return true;
+
+            // Alternate Texture Test
+            if (Record1.Model?.AlternateTextures != null && Record2.Model?.AlternateTextures != null)
             {
-                if(Light1.Inherits.HasFlag(flag) && !Light2.Inherits.HasFlag(flag)) return true;
-                if(!Light1.Inherits.HasFlag(flag) && Light2.Inherits.HasFlag(flag)) return true;
+                bool bTexture = false;
+                if (Record1.Model.AlternateTextures.Count == Record2.Model.AlternateTextures.Count)
+                    foreach (var tex in Record1.Model.AlternateTextures)
+                        if (!Record2.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                            bTexture = true;
+
+                return bTexture;
+            }            
+        }
+
+        return false;
+    }
+
+    public static bool NotEqual(IWeaponDataGetter? Record1, IWeaponDataGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.Speed != Record2?.Speed
+            || Record1?.Reach != Record2?.Reach
+            || Record1?.SightFOV != Record2?.SightFOV
+            || Record1?.BaseVATStoHitChance != Record2?.BaseVATStoHitChance
+            || Record1?.NumProjectiles != Record2?.NumProjectiles
+            || Record1?.EmbeddedWeaponAV != Record2?.EmbeddedWeaponAV
+            || Record1?.RangeMin != Record2?.RangeMin
+            || Record1?.RangeMax != Record2?.RangeMax
+            || Record1?.AnimationAttackMult != Record2?.AnimationAttackMult
+            || Record1?.RumbleLeftMotorStrength != Record2?.RumbleLeftMotorStrength
+            || Record1?.RumbleRightMotorStrength != Record2?.RumbleRightMotorStrength
+            || Record1?.RumbleDuration != Record2?.RumbleDuration
+            || Record1?.Stagger != Record2?.Stagger)
+            return true;
+
+        // Record Flags
+        if (NotEqual(Record1?.AnimationType, Record2?.AnimationType))
+            return true;
+        if (NotEqual(Record1?.AttackAnimation, Record2?.AttackAnimation))
+            return true;
+        if (NotEqual(Record1?.OnHit, Record2?.OnHit))
+            return true;
+        if (NotEqual(Record1?.Skill, Record2?.Skill))
+            return true;
+        if (NotEqual(Record1?.Resist, Record2?.Resist))
+            return true;
+
+        return false;
+    }
+
+    public static bool NotEqual(IWeaponBasicStatsGetter? Record1, IWeaponBasicStatsGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.Value != Record2?.Value
+            || Record1?.Weight != Record2?.Weight
+            || Record1?.Damage != Record2?.Damage)
+            return true;
+
+        // Record Flags
+        return false;
+    }
+
+    public static bool NotEqual(ICriticalDataGetter? Record1, ICriticalDataGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.Damage != Record2?.Damage
+            || Record1?.PercentMult != Record2?.PercentMult
+            || Record1?.Effect.FormKey != Record2?.Effect.FormKey)
+            return true;
+
+        // Record Flags
+        return NotEqual(Record1?.Flags, Record2?.Flags);
+    }
+
+    public static bool NotEqual(INpcFaceMorphGetter? Record1, INpcFaceMorphGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.NoseLongVsShort != Record2?.NoseLongVsShort
+            || Record1?.NoseUpVsDown != Record2?.NoseUpVsDown
+            || Record1?.JawUpVsDown != Record2?.JawUpVsDown
+            || Record1?.JawForwardVsBack != Record2?.JawForwardVsBack
+            || Record1?.JawNarrowVsWide != Record2?.JawNarrowVsWide
+            || Record1?.CheeksUpVsDown != Record2?.CheeksUpVsDown
+            || Record1?.CheeksForwardVsBack != Record2?.CheeksForwardVsBack
+            || Record1?.EyesForwardVsBack != Record2?.EyesForwardVsBack
+            || Record1?.EyesInVsOut != Record2?.EyesInVsOut
+            || Record1?.EyesUpVsDown != Record2?.EyesUpVsDown
+            || Record1?.BrowsForwardVsBack != Record2?.BrowsForwardVsBack
+            || Record1?.BrowsInVsOut != Record2?.BrowsInVsOut
+            || Record1?.BrowsUpVsDown != Record2?.BrowsUpVsDown
+            || Record1?.LipsInVsOut != Record2?.LipsInVsOut
+            || Record1?.LipsUpVsDown != Record2?.LipsUpVsDown
+            || Record1?.ChinNarrowVsWide != Record2?.ChinNarrowVsWide
+            || Record1?.CheeksUpVsDown != Record2?.CheeksUpVsDown
+            || Record1?.ChinUnderbiteVsOverbite != Record2?.ChinUnderbiteVsOverbite)
+            return true;
+
+        // Record Flags
+        return false;
+    }
+
+    public static bool NotEqual(INpcFacePartsGetter? Record1, INpcFacePartsGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.Nose != Record2?.Nose
+            || Record1?.Eyes != Record2?.Eyes
+            || Record1?.Mouth != Record2?.Mouth)
+            return true;
+
+        // Record Flags
+        return false;
+    }
+
+    public static bool NotEqual(IVirtualMachineAdapterGetter? Record1, IVirtualMachineAdapterGetter? Record2)
+    {
+        // // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1 != null && Record2 != null)
+        {
+            foreach (var script in Record1.Scripts)
+            {
+                if (!Record2.Scripts.Where(x => x.Name == script.Name).Any())
+                    return true;
+                else
+                    foreach (var prop in script.Properties)
+                        if (!Record2.Scripts.Where(x => x.Name == script.Name && x.Properties.Equals(prop)).Any())
+                            return true;
             }
 
-        return false;
-    }
-
-    public static bool NotEqual(Cell.MajorFlag Flag1, Cell.MajorFlag Flag2)
-    {
-        // Null Test
-        if (NullTest(Flag1,Flag2, out bool Result)) return Result;
-
-        foreach (var flag in Enums<Cell.MajorFlag>.Values)
-        {
-            if(Flag1.HasFlag(flag) && !Flag2.HasFlag(flag)) return true;
-            if(!Flag1.HasFlag(flag) && Flag2.HasFlag(flag)) return true;
+            foreach (var script in Record2.Scripts)
+            {
+                if (!Record1.Scripts.Where(x => x.Name == script.Name).Any())
+                    return true;
+                else
+                    foreach (var prop in script.Properties)
+                        if (!Record1.Scripts.Where(x => x.Name == script.Name && x.Properties.Equals(prop)).Any())
+                            return true;
+            }
         }
 
         return false;
     }
 
-    public static bool NotEqual(Cell.Flag Flag1, Cell.Flag Flag2)
+    public static bool NotEqual(IReadOnlyList<ITintLayerGetter>? Record1, IReadOnlyList<ITintLayerGetter>? Record2)
     {
         // Null Test
-        if (NullTest(Flag1,Flag2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        foreach (var flag in Enums<Cell.Flag>.Values)
+        if (Record1 != null && Record2 != null)
         {
-            if(Flag1.HasFlag(flag) && !Flag2.HasFlag(flag)) return true;
-            if(!Flag1.HasFlag(flag) && Flag2.HasFlag(flag)) return true;
-        }
-
-        return false;
-    }
-
-    public static bool NotEqual(IReadOnlyList<IContainerEntryGetter>? List1, IReadOnlyList<IContainerEntryGetter>? List2)
-    {
-        // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
-
-        if (List1 != null && List2 != null)
-        {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.Item.Item.FormKey == item.Item.Item.FormKey && x.Item.Count == item.Item.Count).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Index == item.Index && x.Preset == item.Preset && x.InterpolationValue == item.InterpolationValue && x.Color?.ToArgb() == item.Color?.ToArgb()).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.Item.Item.FormKey == item.Item.Item.FormKey && x.Item.Count == item.Item.Count).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Index == item.Index && x.Preset == item.Preset && x.InterpolationValue == item.InterpolationValue && x.Color?.ToArgb() == item.Color?.ToArgb()).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IReadOnlyList<IPerkPlacementGetter>? List1, IReadOnlyList<IPerkPlacementGetter>? List2)
+    public static bool NotEqual(IReadOnlyList<IContainerEntryGetter>? Record1, IReadOnlyList<IContainerEntryGetter>? Record2)
     {
         // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (List1 != null && List2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.Perk.FormKey == item.Perk.FormKey && x.Rank == item.Rank).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Item.Item.FormKey == item.Item.Item.FormKey && x.Item.Count == item.Item.Count).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.Perk.FormKey == item.Perk.FormKey && x.Rank == item.Rank).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Item.Item.FormKey == item.Item.Item.FormKey && x.Item.Count == item.Item.Count).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IReadOnlyList<ILeveledItemEntryGetter>? List1, IReadOnlyList<ILeveledItemEntryGetter>? List2)
+    public static bool NotEqual(IReadOnlyList<IPerkPlacementGetter>? Record1, IReadOnlyList<IPerkPlacementGetter>? Record2)
     {
         // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (List1 != null && List2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Perk.FormKey == item.Perk.FormKey && x.Rank == item.Rank).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Perk.FormKey == item.Perk.FormKey && x.Rank == item.Rank).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IReadOnlyList<ILeveledNpcEntryGetter>? List1, IReadOnlyList<ILeveledNpcEntryGetter>? List2)
+    public static bool NotEqual(IReadOnlyList<IRelationGetter>? Record1, IReadOnlyList<IRelationGetter>? Record2)
     {
         // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (List1 != null && List2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Target.FormKey == item.Target.FormKey && x.Modifier == item.Modifier).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Target.FormKey == item.Target.FormKey && x.Modifier == item.Modifier).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IReadOnlyList<ILeveledSpellEntryGetter>? List1, IReadOnlyList<ILeveledSpellEntryGetter>? List2)
+    public static bool NotEqual(IReadOnlyList<IRankPlacementGetter>? Record1, IReadOnlyList<IRankPlacementGetter>? Record2)
     {
         // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (List1 != null && List2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Faction.FormKey == item.Faction.FormKey && x.Rank == item.Rank).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Faction.FormKey == item.Faction.FormKey && x.Rank == item.Rank).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IReadOnlyList<IFormLinkGetter<ISkyrimMajorRecordGetter>>? List1, IReadOnlyList<IFormLinkGetter<ISkyrimMajorRecordGetter>>? List2)
+    public static bool NotEqual(IReadOnlyList<ILeveledItemEntryGetter>? Record1, IReadOnlyList<ILeveledItemEntryGetter>? Record2)
     {
         // Null Test
-        if (NullTest(List1,List2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (List1 != null && List2 != null)
+        if (Record1 != null && Record2 != null)
         {
-            foreach(var item in List1)
-                if (!List2.Where(x => x.FormKey == item.FormKey).Any())
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
                     return true;
 
-            foreach(var item in List2)
-                if (!List1.Where(x => x.FormKey == item.FormKey).Any())
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
                     return true;
         }
         return false;
     }
 
-    public static bool NotEqual(IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Link1, IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Link2)
+    public static bool NotEqual(IReadOnlyList<ILeveledNpcEntryGetter>? Record1, IReadOnlyList<ILeveledNpcEntryGetter>? Record2)
     {
         // Null Test
-        if (NullTest(Link1,Link2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Link1.FormKey != Link2.FormKey)
+        if (Record1 != null && Record2 != null)
+        {
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+                    return true;
+
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+                    return true;
+        }
+        return false;
+    }
+
+    public static bool NotEqual(IReadOnlyList<ILeveledSpellEntryGetter>? Record1, IReadOnlyList<ILeveledSpellEntryGetter>? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1 != null && Record2 != null)
+        {
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+                    return true;
+
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.Data?.Reference.FormKey == item.Data?.Reference.FormKey && x.Data?.Count == item.Data?.Count).Any())
+                    return true;
+        }
+        return false;
+    }
+
+    public static bool NotEqual(IGenderedItemGetter<IArmorModelGetter?>? Record1, IGenderedItemGetter<IArmorModelGetter?>? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1?.Male != null && Record2?.Male != null)
+        {
+            if (Record1.Male.Model?.File.RawPath != Record2.Male.Model?.File.RawPath)
+                return true;
+
+            // Alternate Texture Test
+            if (Record1.Male.Model?.AlternateTextures != null && Record2.Male.Model?.AlternateTextures != null)
+            {
+                bool bTexture = false;
+                if (Record1.Male.Model.AlternateTextures.Count == Record2.Male.Model.AlternateTextures.Count)
+                    foreach (var tex in Record1.Male.Model.AlternateTextures)
+                        if (!Record2.Male.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                            bTexture = true;
+
+                return bTexture;
+            }            
+        }
+
+        if (Record1?.Female != null && Record2?.Female != null)
+        {
+            if (Record1.Female.Model?.File.RawPath != Record2.Female.Model?.File.RawPath)
+                return true;
+
+            // Alternate Texture Test
+            if (Record1.Female.Model?.AlternateTextures != null && Record2.Female.Model?.AlternateTextures != null)
+            {
+                bool bTexture = false;
+                if (Record1.Female.Model.AlternateTextures.Count == Record2.Female.Model.AlternateTextures.Count)
+                    foreach (var tex in Record1.Female.Model.AlternateTextures)
+                        if (!Record2.Female.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                            bTexture = true;
+
+                return bTexture;
+            }            
+        }
+
+        return false;
+    }
+
+    public static bool NotEqual(IGenderedItemGetter<IModelGetter?>? Record1, IGenderedItemGetter<IModelGetter?>? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1?.Male != null && Record2?.Male != null)
+        {
+            if (Record1.Male.File.RawPath != Record2.Male.File.RawPath)
+                return true;
+
+            // Alternate Texture Test
+            if (Record1.Male.AlternateTextures != null && Record2.Male.AlternateTextures != null)
+            {
+                bool bTexture = false;
+                if (Record1.Male.AlternateTextures.Count == Record2.Male.AlternateTextures.Count)
+                    foreach (var tex in Record1.Male.AlternateTextures)
+                        if (!Record2.Male.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                            bTexture = true;
+
+                return bTexture;
+            }            
+        }
+
+        if (Record1?.Female != null && Record2?.Female != null)
+        {
+            if (Record1.Female.File.RawPath != Record2.Female.File.RawPath)
+                return true;
+
+            // Alternate Texture Test
+            if (Record1.Female.AlternateTextures != null && Record2.Female.AlternateTextures != null)
+            {
+                bool bTexture = false;
+                if (Record1.Female.AlternateTextures.Count == Record2.Female.AlternateTextures.Count)
+                    foreach (var tex in Record1.Female.AlternateTextures)
+                        if (!Record2.Female.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                            bTexture = true;
+
+                return bTexture;
+            }            
+        }
+
+        return false;
+    }
+
+    public static bool NotEqual(IReadOnlyList<IFormLinkGetter<ISkyrimMajorRecordGetter>>? Record1, IReadOnlyList<IFormLinkGetter<ISkyrimMajorRecordGetter>>? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1 != null && Record2 != null)
+        {
+            foreach(var item in Record1)
+                if (!Record2.Where(x => x.FormKey == item.FormKey).Any())
+                    return true;
+
+            foreach(var item in Record2)
+                if (!Record1.Where(x => x.FormKey == item.FormKey).Any())
+                    return true;
+        }
+        return false;
+    }
+
+    public static bool NotEqual(IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Record1, IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Record2)
+    {
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        if (Record1.FormKey != Record2.FormKey)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(IFormLinkGetter<ISkyrimMajorRecordGetter>? Link1, IFormLinkGetter<ISkyrimMajorRecordGetter>? Link2)
+    public static bool NotEqual(IFormLinkGetter<ISkyrimMajorRecordGetter>? Record1, IFormLinkGetter<ISkyrimMajorRecordGetter>? Record2)
     {
         // Null Test
-        if (NullTest(Link1,Link2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Link1 != null && Link2 != null && Link1.FormKey != Link2.FormKey)
+        if (Record1 != null && Record2 != null && Record1.FormKey != Record2.FormKey)
             return true;
 
         return false;
     }
 
-    public static bool NotEqual(IGenderedItemGetter<IArmorModelGetter?>? Link1, IGenderedItemGetter<IArmorModelGetter?>? Link2)
+    public static bool NotEqual<TEnum>(TEnum Record1, TEnum Record2) where TEnum : struct, System.Enum
     {
         // Null Test
-        if (NullTest(Link1,Link2, out bool Result)) return Result;
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Link1?.Male != null && Link2?.Male != null)
+        foreach (var flag in Enums<TEnum>.Values)
         {
-            if (Link1.Male.Model?.File.RawPath != Link2.Male.Model?.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Link1.Male.Model?.AlternateTextures != null && Link2.Male.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Link1.Male.Model.AlternateTextures.Count == Link2.Male.Model.AlternateTextures.Count)
-                    foreach (var tex in Link1.Male.Model.AlternateTextures)
-                        if (!Link2.Male.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
-
-        if (Link1?.Female != null && Link2?.Female != null)
-        {
-            if (Link1.Female.Model?.File.RawPath != Link2.Female.Model?.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Link1.Female.Model?.AlternateTextures != null && Link2.Female.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Link1.Female.Model.AlternateTextures.Count == Link2.Female.Model.AlternateTextures.Count)
-                    foreach (var tex in Link1.Female.Model.AlternateTextures)
-                        if (!Link2.Female.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
+            if(Record1.HasFlag(flag) && !Record2.HasFlag(flag)) return true;
+            if(!Record1.HasFlag(flag) && Record2.HasFlag(flag)) return true;
         }
 
         return false;
     }
 
-    public static bool NotEqual(IArmorModelGetter? Link1, IArmorModelGetter? Link2)
+    public static bool NotEqual<TEnum>(TEnum? Record1, TEnum? Record2) where TEnum : struct, System.Enum
     {
-        if (Link1 != null && Link2 != null)
+        // Null Test
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        foreach (var flag in Enums<TEnum>.Values)
         {
-            if (Link1.Model?.File.RawPath != Link2.Model?.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Link1.Model?.AlternateTextures != null && Link2.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Link1.Model.AlternateTextures.Count == Link2.Model.AlternateTextures.Count)
-                    foreach (var tex in Link1.Model.AlternateTextures)
-                        if (!Link2.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
+            if(Record1.GetValueOrDefault().HasFlag(flag) && !Record2.GetValueOrDefault().HasFlag(flag)) return true;
+            if(!Record1.GetValueOrDefault().HasFlag(flag) && Record2.GetValueOrDefault().HasFlag(flag)) return true;
         }
 
         return false;
     }
-    
+
+    public static bool NotEqual(Color? Record1, Color? Record2)
+    {
+        if (NullTest(Record1,Record2, out bool Result)) return Result;
+
+        else if (Record1 != null && Record2 != null && Record1.Value.ToArgb != Record2.Value.ToArgb)
+            return true;
+        else
+            return false;
+    }
+
     public static bool NotEqual(string? Record1, string? Record2)
     {
         if (NullTest(Record1,Record2, out bool Result)) return Result;
@@ -465,15 +697,15 @@ public static class Compare
             return false;
     }
 
-    public static bool NullTest(object? O1, object? O2, out bool value)
+    public static bool NullTest(object? Obj1, object? Obj2, out bool value)
     {
         // Null Test
-        if (O1 == null && O2 == null)
+        if (Obj1 == null && Obj2 == null)
         {
             value = false;
             return true;
         }
-        else if ((O1 != null && O2 == null) || (O1 == null && O2 != null))
+        else if ((Obj1 != null && Obj1 == null) || (Obj1 == null && Obj2 != null))
         {
             value = true;
             return true;
