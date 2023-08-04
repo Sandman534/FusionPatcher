@@ -72,6 +72,9 @@ namespace Fusion
             Console.WriteLine("Processing Quests");
             QuestPatcher.Patch(state, NewSettings);
 
+            Console.WriteLine("Processing Quests");
+            ScrollPatcher.Patch(state, NewSettings);
+
             Console.WriteLine("Processing Weapons");
             WeaponPatcher.Patch(state, NewSettings);
         }

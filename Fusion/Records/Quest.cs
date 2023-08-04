@@ -26,20 +26,21 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("Names").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
+                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Name?.Equals(workingContext.Record.Name) ?? false) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null) overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
                         }
                         break;
                     }
@@ -48,20 +49,22 @@ namespace Fusion
                 //==============================================================================================================
                 // Text
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Text").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("Text").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Description?.Equals(originalObject.Record.Description) ?? false)
+
+                    if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Description?.Equals(workingContext.Record.Description) ?? false) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.Description,workingContext.Record.Description)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Description != null) overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
+                            if (foundContext.Record.Description != null && Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
+                                overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
                         }
                         break;
                     }

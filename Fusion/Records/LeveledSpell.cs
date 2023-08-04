@@ -24,109 +24,85 @@ namespace Fusion
                 var originalObject = state.LinkCache.ResolveAllContexts<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey).Last();
 
                 //==============================================================================================================
-                // Relev
+                // Leveled List
                 //==============================================================================================================
-                if (Settings.TagCount("Relev", out var FoundKeys) > 0)
+                if (Settings.HasTags("Relev,Delev"))
                 {
-                    // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
-                    if (foundContext.Any())
+                    // Create list and fill it with Last Record or Patch Record
+                    ExtendedList<LeveledSpellEntry> overrideObject = new();
+                    if (workingContext.Record.Entries != null)
+                        foreach (var rec in workingContext.Record.Entries)
+                            overrideObject.Add(rec.DeepCopy());
+
+                    bool Change = false;
+                    if (Settings.HasTags("Relev", out var Relev))
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<LeveledSpellEntry> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
-                            foreach (var rec in patchRecord.Record.Entries)
-                                overrideObject.Add(rec.DeepCopy());
-                        else if (workingContext.Record.Entries != null)
-                            foreach (var rec in workingContext.Record.Entries)
-                                overrideObject.Add(rec.DeepCopy());
-
-                        // Copy Records
-                        bool Change = false;
-                        foreach (var context in foundContext)
-                        {
-                            if (context.Record.Entries != null && context.Record.Entries.Count > 0)
-                                foreach (var rec in context.Record.Entries)
-                                    if (rec.Data != null && rec.Data.Reference != null)
-                                        if (!overrideObject.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey).Any())
-                                        {
-                                            overrideObject.Add(rec.DeepCopy());
-                                            Change = true;
-                                        }
-                        }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
-                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Entries?.SetTo(overrideObject);
-                        }
-                    }
-                }
-
-                //==============================================================================================================
-                // Delev
-                //==============================================================================================================
-                if (Settings.TagCount("Delev", out var FoundKeys1) > 0)
-                {
-                    // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => FoundKeys1.Contains(context.ModKey) && ((!context.Record.Entries?.Equals(originalObject.Record.Entries) ?? false)));
-                    if (foundContext.Any())
-                    {
-                        // Create list and fill it with Last Record or Patch Record
-                        ExtendedList<LeveledSpellEntry> overrideObject = new();
-                        if (state.LinkCache.TryResolveContext<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey, out var patchRecord) && patchRecord.Record.Entries != null)
-                            foreach (var rec in patchRecord.Record.Entries)
-                                overrideObject.Add(rec.DeepCopy());
-                        else if (workingContext.Record.Entries != null)
-                            foreach (var rec in workingContext.Record.Entries)
-                                overrideObject.Add(rec.DeepCopy());
-
-                        // Copy Records
-                        bool Change = false;
-                        foreach (var context in foundContext.Reverse())
-                        {
-                            if (context.Record.Entries != null && context.Record.Entries.Count > 0)
-                                if (originalObject.Record.Entries != null && originalObject.Record.Entries.Count > 0)
-                                    foreach (var rec in originalObject.Record.Entries)
+                        // Get the last overriding context of our element
+                        var foundContext = modContext.Where(context => Relev.Contains(context.ModKey) && Compare.NotEqual(context.Record.Entries,originalObject.Record.Entries));
+                        if (foundContext.Any())
+                            foreach (var context in foundContext)
+                            {
+                                if (context.Record.Entries != null && context.Record.Entries.Count > 0)
+                                    foreach (var rec in context.Record.Entries)
                                         if (rec.Data != null && rec.Data.Reference != null)
-                                            if (!context.Record.Entries.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                                            if (!overrideObject.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey).Any())
                                             {
-                                                var oFoundRec = overrideObject.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey);
-                                                if (oFoundRec.Any())
-                                                {
-                                                    overrideObject.Remove(oFoundRec.First());
-                                                    Change = true;
-                                                }
+                                                overrideObject.Add(rec.DeepCopy());
+                                                Change = true;
                                             }
-                        }
+                            }
+                    }
 
-                        // If changes were made, override and write bac
-                        if (Change)
-                        {
-                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Entries?.SetTo(overrideObject);
-                        }
+                    if (Settings.HasTags("Delev", out var Delev))
+                    {
+                        // Get the last overriding context of our element
+                        var foundContext = modContext.Where(context => Delev.Contains(context.ModKey) && Compare.NotEqual(context.Record.Entries,originalObject.Record.Entries));
+                        if (foundContext.Any())
+                            foreach (var context in foundContext.Reverse())
+                            {
+                                if (context.Record.Entries != null && context.Record.Entries.Count > 0)
+                                    if (originalObject.Record.Entries != null && originalObject.Record.Entries.Count > 0)
+                                        foreach (var rec in originalObject.Record.Entries)
+                                            if (rec.Data != null && rec.Data.Reference != null)
+                                                if (!context.Record.Entries.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                                                {
+                                                    var oFoundRec = overrideObject.Where(x => x.Data != null && x.Data.Reference.FormKey == rec.Data.Reference.FormKey);
+                                                    if (oFoundRec.Any())
+                                                    {
+                                                        overrideObject.Remove(oFoundRec.First());
+                                                        Change = true;
+                                                    }
+                                                }
+                            }
+                    }
+
+                    // If changes were made, override and write back
+                    if (Change)
+                    {
+                        var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                        addedRecord.Entries?.SetTo(overrideObject);
                     }
                 }
+
 
                 //==============================================================================================================
                 // Object Bounds
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("ObjectBounds").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("ObjectBounds").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.ObjectBounds?.Equals(originalObject.Record.ObjectBounds) ?? false)
+                    if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.ObjectBounds?.Equals(workingContext.Record.ObjectBounds) ?? false) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.ObjectBounds,workingContext.Record.ObjectBounds)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectBounds != null) overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                            if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                                overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
                         }
                         break;
                     }

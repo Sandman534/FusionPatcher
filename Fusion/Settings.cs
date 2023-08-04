@@ -107,7 +107,29 @@ namespace Fusion
             return new HashSet<ModKey>(ModList);
         }
 
-        public HashSet<ModKey> HasTag(string BashTag)
+        public bool HasTags(string BashTag)
+        {
+            List<string> tagList = BashTag.Split(',').ToList();
+            List<ModKey> ModList = new();
+            foreach(var ts in AllSettings)
+                if (tagList.Contains(ts.BashTag))
+                    ModList.Add(ts.Key);
+
+            return ModList.Any();
+        }
+
+        public bool HasTags(string BashTag, out HashSet<ModKey> TagList)
+        {
+            List<ModKey> ModList = new();
+            foreach(var ts in AllSettings)
+                if (BashTag == ts.BashTag)
+                    ModList.Add(ts.Key);
+
+            TagList = new HashSet<ModKey>(ModList);
+            return TagList.Any();
+        }
+
+        public HashSet<ModKey> TagList(string BashTag)
         {
             List<ModKey> ModList = new();
             foreach(var ts in AllSettings)
@@ -125,17 +147,6 @@ namespace Fusion
                     ModList.Add(ts.Key);
 
             return ModList.Count;
-        }
-
-        public int TagCount(string BashTag, out HashSet<ModKey> FoundKeys)
-        {
-            List<ModKey> ModList = new();
-            foreach(var ts in AllSettings)
-                if (BashTag == ts.BashTag)
-                    ModList.Add(ts.Key);
-
-            FoundKeys = new HashSet<ModKey>(ModList);
-            return FoundKeys.Count;
         }
 
         private void ProcessUserSetting(List<ModKey> ModKeys, string BashTags)

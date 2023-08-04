@@ -26,21 +26,21 @@ namespace Fusion
                 //==============================================================================================================
                 // Graphics
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Graphics").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("Graphics").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Icons?.Equals(originalObject.Record.Icons) ?? false)
+                    if (Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Icons?.Equals(workingContext.Record.Icons) ?? false) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.Icons,workingContext.Record.Icons)) Change = true;
                         
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            var lastObject = foundContext.Record;
-                            if (lastObject.Icons != null) overrideObject.Icons?.DeepCopyIn(lastObject.Icons);
+                            if (foundContext.Record.Icons != null && Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
+                                overrideObject.Icons?.DeepCopyIn(foundContext.Record.Icons);
                         }
                         break;
                     }
@@ -49,44 +49,45 @@ namespace Fusion
                 //==============================================================================================================
                 // Names
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Names").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("Names").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Name?.Equals(originalObject.Record.Name) ?? false)
+                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Name?.Equals(workingContext.Record.Name) ?? false) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
 
                         // Copy Records
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            var lastObject = foundContext.Record;
-                            if (lastObject.Name != null) overrideObject.Name?.Set(lastObject.Name.TargetLanguage, lastObject.Name.String);
+                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
                         }
                         break;
                     }
                 }
 
                 //==============================================================================================================
-                // Description
+                // Text
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.HasTag("Text").Contains(context.ModKey)))
+                foreach(var foundContext in modContext.Where(context => Settings.TagList("Text").Contains(context.ModKey)))
                 {
-                    if (!foundContext.Record.Description.Equals(originalObject.Record.Description))
+
+                    if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
                     {
                         // Checks
                         bool Change = false;
                         if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (!foundContext.Record.Description.Equals(workingContext.Record.Description)) Change = true;
+                        if (Compare.NotEqual(foundContext.Record.Description,workingContext.Record.Description)) Change = true;
 
                         // Copy Records
                         if (Change)
-                        {   
+                        {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            var lastObject = foundContext.Record;
-                            overrideObject.Description.Set(lastObject.Description.TargetLanguage, lastObject.Description.String);
+                            if (foundContext.Record.Description != null && Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
+                                overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
                         }
                         break;
                     }
