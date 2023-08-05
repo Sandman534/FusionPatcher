@@ -723,7 +723,7 @@ public class Keywords
 {
     public ExtendedList<IFormLinkGetter<IKeywordGetter>> OverrideObject {get; set;}
     public bool Modified;
-
+    
     public Keywords(IReadOnlyList<IFormLinkGetter<IKeywordGetter>>? WorkingRecord)
     {
         OverrideObject = new();
@@ -733,6 +733,7 @@ public class Keywords
             foreach (var rec in WorkingRecord) 
                 OverrideObject.Add(rec);        
     }
+    
     public void Add(IReadOnlyList<IFormLinkGetter<IKeywordGetter>>? FoundObject, IReadOnlyList<IFormLinkGetter<IKeywordGetter>>? OriginalObject)
     {
         if (FoundObject != null && FoundObject.Count > 0)
@@ -852,7 +853,8 @@ public class Factions
             foreach (var rec in WorkingRecord) 
                 OverrideObject.Add(rec.DeepCopy());        
     }
-    public void Add(IReadOnlyList<IRankPlacementGetter>? FoundContext)
+   
+   public void Add(IReadOnlyList<IRankPlacementGetter>? FoundContext)
     {
         if (FoundContext != null && FoundContext.Count > 0)
             foreach (var rec in FoundContext)
@@ -887,7 +889,7 @@ public class Factions
                 if (!OriginalObject.Where(x => x.Faction.FormKey == rec.Faction.FormKey && x.Rank == rec.Rank).Any())
                 {
                     var oFoundRec = OverrideObject.Where(x => x.Faction.FormKey == rec.Faction.FormKey);
-                    if (oFoundRec.Any() && oFoundRec.First().Rank != rec.Rank)
+                    if (oFoundRec.Any())
                     {
                         OverrideObject.Remove(oFoundRec.First());
                         OverrideObject.Add(rec.DeepCopy());
@@ -949,7 +951,7 @@ public class Relations
                 if (oFoundOrg.Any())
                 {
                     var oFoundRec = OverrideObject.Where(x => x.Target.FormKey == rec.Target.FormKey);
-                    if (oFoundRec.Any() && oFoundRec.First().Modifier != rec.Modifier)
+                    if (oFoundRec.Any())
                     {
                         OverrideObject.Remove(oFoundRec.First());
                         OverrideObject.Add(oFoundOrg.First().DeepCopy());
@@ -1013,7 +1015,7 @@ public class Perks
                 if (oFoundOrg.Any())
                 {
                     var oFoundRec = OverrideObject.Where(x => x.Perk.FormKey == rec.Perk.FormKey);
-                    if (oFoundRec.Any() && oFoundRec.First().Rank != rec.Rank)
+                    if (oFoundRec.Any())
                     {
                         OverrideObject.Remove(oFoundRec.First());
                         OverrideObject.Add(oFoundOrg.First().DeepCopy());
@@ -1077,7 +1079,7 @@ public class Containers
                 if (oFoundOrg.Any())
                 {
                     var oFoundRec = OverrideObject.Where(x => x.Item.Item.FormKey == rec.Item.Item.FormKey);
-                    if (oFoundRec.Any() && oFoundRec.First().Item.Count != rec.Item.Count)
+                    if (oFoundRec.Any())
                     {
                         OverrideObject.Remove(oFoundRec.First());
                         OverrideObject.Add(oFoundOrg.First().DeepCopy());
