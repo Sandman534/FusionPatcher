@@ -20,13 +20,17 @@ public static class Compare
             return true;    
 
         // Alternate Texture Test
+        if (NullTest(Record1?.AlternateTextures,Record2?.AlternateTextures, out bool Result2)) return Result2;
+        bool bTexture = false;
         if (Record1?.AlternateTextures != null && Record2?.AlternateTextures != null)
         {
-            bool bTexture = false;
-            if (Record1.AlternateTextures.Count == Record1.AlternateTextures.Count)
-                foreach (var tex in Record1.AlternateTextures)
-                    if (!Record2.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                        bTexture = true;
+            foreach (var tex in Record1.AlternateTextures)
+                if (!Record2.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                    bTexture = true;
+
+            foreach (var tex in Record2.AlternateTextures)
+                if (!Record1.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
+                    bTexture = true;
 
             return bTexture;
         }
@@ -141,68 +145,42 @@ public static class Compare
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
         // Colors
-        if (Record1 != null && Record2 != null)
-            if (Record1.AmbientColor.ToArgb() != Record2.AmbientColor.ToArgb()
-                || Record1.DirectionalColor.ToArgb() != Record2.DirectionalColor.ToArgb()
-                || Record1.FogNearColor.ToArgb() != Record2.FogNearColor.ToArgb()
-                || Record1.FogFarColor.ToArgb() != Record2.FogFarColor.ToArgb())
-                return true;
+        if (Record1?.AmbientColor.ToArgb() != Record2?.AmbientColor.ToArgb()
+            || Record1?.DirectionalColor.ToArgb() != Record2?.DirectionalColor.ToArgb()
+            || Record1?.FogNearColor.ToArgb() != Record2?.FogNearColor.ToArgb()
+            || Record1?.FogFarColor.ToArgb() != Record2?.FogFarColor.ToArgb())
+            return true;
 
         // Ambient Colors
-        if (Record1 != null && Record2 != null)
-        {
-            if (Record1.AmbientColors.Specular.ToArgb() != Record2.AmbientColors.Specular.ToArgb())
-                return true;
-            if (Record1.AmbientColors.Scale != Record2.AmbientColors.Scale)
-                return true;
-            if (Record1.AmbientColors.DirectionalXPlus.ToArgb() != Record2.AmbientColors.DirectionalXPlus.ToArgb()
-                || Record1.AmbientColors.DirectionalXMinus.ToArgb() != Record2.AmbientColors.DirectionalXMinus.ToArgb()
-                || Record1.AmbientColors.DirectionalYPlus.ToArgb() != Record2.AmbientColors.DirectionalYPlus.ToArgb()
-                || Record1.AmbientColors.DirectionalYMinus.ToArgb() != Record2.AmbientColors.DirectionalYMinus.ToArgb()
-                || Record1.AmbientColors.DirectionalZPlus.ToArgb() != Record2.AmbientColors.DirectionalZPlus.ToArgb()
-                || Record1.AmbientColors.DirectionalZMinus.ToArgb() != Record2.AmbientColors.DirectionalZMinus.ToArgb())
-                return true;
-        }
+        if (Record1?.AmbientColors.Specular.ToArgb() != Record2?.AmbientColors.Specular.ToArgb())
+            return true;
+        if (Record1?.AmbientColors.Scale != Record2?.AmbientColors.Scale)
+            return true;
+        if (Record1?.AmbientColors.DirectionalXPlus.ToArgb() != Record2?.AmbientColors.DirectionalXPlus.ToArgb()
+            || Record1?.AmbientColors.DirectionalXMinus.ToArgb() != Record2?.AmbientColors.DirectionalXMinus.ToArgb()
+            || Record1?.AmbientColors.DirectionalYPlus.ToArgb() != Record2?.AmbientColors.DirectionalYPlus.ToArgb()
+            || Record1?.AmbientColors.DirectionalYMinus.ToArgb() != Record2?.AmbientColors.DirectionalYMinus.ToArgb()
+            || Record1?.AmbientColors.DirectionalZPlus.ToArgb() != Record2?.AmbientColors.DirectionalZPlus.ToArgb()
+            || Record1?.AmbientColors.DirectionalZMinus.ToArgb() != Record2?.AmbientColors.DirectionalZMinus.ToArgb())
+            return true;
 
         // Values
-        if (Record1 != null && Record2 != null)
-        {
-            if (Record1.FogNear != Record2.FogNear || Record1.FogFar != Record2.FogFar || Record1.FogClipDistance != Record2.FogClipDistance || Record1.FogPower != Record2.FogPower || Record1.FogMax != Record2.FogMax)
-                return true;
-            if (Record1.DirectionalRotationXY != Record2.DirectionalRotationXY || Record1.DirectionalRotationZ != Record2.DirectionalRotationZ || Record1.DirectionalFade != Record2.DirectionalFade)
-                return true;
-            if (Record1.LightFadeBegin != Record2.LightFadeBegin || Record1.LightFadeEnd != Record2.LightFadeEnd)
-                return true;
-        }
+        if (Record1?.FogNear != Record2?.FogNear
+            || Record1?.FogFar != Record2?.FogFar
+            || Record1?.FogClipDistance != Record2?.FogClipDistance
+            || Record1?.FogPower != Record2?.FogPower
+            || Record1?.FogMax != Record2?.FogMax)
+            return true;
+        if (Record1?.DirectionalRotationXY != Record2?.DirectionalRotationXY 
+            || Record1?.DirectionalRotationZ != Record2?.DirectionalRotationZ 
+            || Record1?.DirectionalFade != Record2?.DirectionalFade)
+            return true;
+        if (Record1?.LightFadeBegin != Record2?.LightFadeBegin
+            || Record1?.LightFadeEnd != Record2?.LightFadeEnd)
+            return true;
 
         // Inherits
         return NotEqual(Record1?.Inherits, Record2?.Inherits);
-    }
-
-    public static bool NotEqual(IArmorModelGetter? Record1, IArmorModelGetter? Record2)
-    {
-        // Null Test
-        if (NullTest(Record1,Record2, out bool Result)) return Result;
-
-        if (Record1 != null && Record2 != null)
-        {
-            if (Record1.Model?.File.RawPath != Record2.Model?.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Record1.Model?.AlternateTextures != null && Record2.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Record1.Model.AlternateTextures.Count == Record2.Model.AlternateTextures.Count)
-                    foreach (var tex in Record1.Model.AlternateTextures)
-                        if (!Record2.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
-
-        return false;
     }
 
     public static bool NotEqual(IWeaponDataGetter? Record1, IWeaponDataGetter? Record2)
@@ -496,41 +474,11 @@ public static class Compare
         // Null Test
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Record1?.Male != null && Record2?.Male != null)
-        {
-            if (Record1.Male.Model?.File.RawPath != Record2.Male.Model?.File.RawPath)
-                return true;
+        if (NotEqual(Record1?.Male?.Model,Record2?.Male?.Model))
+            return true;
 
-            // Alternate Texture Test
-            if (Record1.Male.Model?.AlternateTextures != null && Record2.Male.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Record1.Male.Model.AlternateTextures.Count == Record2.Male.Model.AlternateTextures.Count)
-                    foreach (var tex in Record1.Male.Model.AlternateTextures)
-                        if (!Record2.Male.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
-
-        if (Record1?.Female != null && Record2?.Female != null)
-        {
-            if (Record1.Female.Model?.File.RawPath != Record2.Female.Model?.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Record1.Female.Model?.AlternateTextures != null && Record2.Female.Model?.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Record1.Female.Model.AlternateTextures.Count == Record2.Female.Model.AlternateTextures.Count)
-                    foreach (var tex in Record1.Female.Model.AlternateTextures)
-                        if (!Record2.Female.Model.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
+        if (NotEqual(Record1?.Female?.Model,Record2?.Female?.Model))
+            return true;
 
         return false;
     }
@@ -540,41 +488,11 @@ public static class Compare
         // Null Test
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Record1?.Male != null && Record2?.Male != null)
-        {
-            if (Record1.Male.File.RawPath != Record2.Male.File.RawPath)
-                return true;
+        if (NotEqual(Record1?.Male,Record2?.Male))
+            return true;
 
-            // Alternate Texture Test
-            if (Record1.Male.AlternateTextures != null && Record2.Male.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Record1.Male.AlternateTextures.Count == Record2.Male.AlternateTextures.Count)
-                    foreach (var tex in Record1.Male.AlternateTextures)
-                        if (!Record2.Male.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
-
-        if (Record1?.Female != null && Record2?.Female != null)
-        {
-            if (Record1.Female.File.RawPath != Record2.Female.File.RawPath)
-                return true;
-
-            // Alternate Texture Test
-            if (Record1.Female.AlternateTextures != null && Record2.Female.AlternateTextures != null)
-            {
-                bool bTexture = false;
-                if (Record1.Female.AlternateTextures.Count == Record2.Female.AlternateTextures.Count)
-                    foreach (var tex in Record1.Female.AlternateTextures)
-                        if (!Record2.Female.AlternateTextures.Where(x => x.NewTexture == tex.NewTexture).Any())
-                            bTexture = true;
-
-                return bTexture;
-            }            
-        }
+        if (NotEqual(Record1?.Female,Record2?.Female))
+            return true;
 
         return false;
     }
@@ -705,7 +623,7 @@ public static class Compare
             value = false;
             return true;
         }
-        else if ((Obj1 != null && Obj1 == null) || (Obj1 == null && Obj2 != null))
+        else if ((Obj1 != null && Obj2 == null) || (Obj1 == null && Obj2 != null))
         {
             value = true;
             return true;
