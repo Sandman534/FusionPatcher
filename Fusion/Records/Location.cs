@@ -4,8 +4,9 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
+
 namespace Fusion
 {
     internal class LocationPatcher
@@ -38,7 +39,7 @@ namespace Fusion
                             NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
                         if (NewKeywords.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords?.SetTo(NewKeywords.OverrideObject);
+                            addedRecord.Keywords = NewKeywords.OverrideObject;
                         }
                     }
                 }
@@ -59,8 +60,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -82,7 +83,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Music != null && Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
+                            if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                 overrideObject.Music.SetTo(foundContext.Record.Music);
                         }
                         break;
@@ -109,9 +110,9 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ParentLocation != null && Compare.NotEqual(foundContext.Record.ParentLocation,originalObject.Record.ParentLocation))
+                            if (Compare.NotEqual(foundContext.Record.ParentLocation,originalObject.Record.ParentLocation))
                                 overrideObject.ParentLocation.SetTo(foundContext.Record.ParentLocation);
-                            if (foundContext.Record.WorldLocationMarkerRef != null && Compare.NotEqual(foundContext.Record.WorldLocationMarkerRef,originalObject.Record.WorldLocationMarkerRef))
+                            if (Compare.NotEqual(foundContext.Record.WorldLocationMarkerRef,originalObject.Record.WorldLocationMarkerRef))
                                 overrideObject.WorldLocationMarkerRef.SetTo(foundContext.Record.WorldLocationMarkerRef);
                             if (Compare.NotEqual(foundContext.Record.WorldLocationRadius,originalObject.Record.WorldLocationRadius))
                                 overrideObject.WorldLocationRadius = foundContext.Record.WorldLocationRadius;

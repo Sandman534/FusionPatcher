@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -39,8 +39,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -79,7 +79,7 @@ namespace Fusion
 
                     if (NewRelation.Modified) {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Relations?.SetTo(NewRelation.OverrideObject);
+                        addedRecord.Relations.SetTo(NewRelation.OverrideObject);
                     }
                 }
 

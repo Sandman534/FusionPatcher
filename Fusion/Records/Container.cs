@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -40,8 +40,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Destructible != null && Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
-                                overrideObject.Destructible?.DeepCopyIn(foundContext.Record.Destructible);
+                            if (Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
+                                overrideObject.Destructible = foundContext.Record.Destructible?.DeepCopy();
                         }
                         break;
                     }
@@ -63,8 +63,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Model != null && Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model))
-                                overrideObject.Model?.DeepCopyIn(foundContext.Record.Model);
+                            if (Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model))
+                                overrideObject.Model = foundContext.Record.Model?.DeepCopy();
                         }
                         break;
                     }
@@ -103,7 +103,7 @@ namespace Fusion
 
                     if (NewContainer.Modified) {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Items?.SetTo(NewContainer.OverrideObject);
+                        addedRecord.Items = NewContainer.OverrideObject;
                     }
                 }
 
@@ -123,8 +123,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -147,7 +147,7 @@ namespace Fusion
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                             if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                                overrideObject.ObjectBounds = foundContext.Record.ObjectBounds.DeepCopy();
                         }
                         break;
                     }
@@ -169,8 +169,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.VirtualMachineAdapter != null && Compare.NotEqual(foundContext.Record.VirtualMachineAdapter,originalObject.Record.VirtualMachineAdapter))
-                                overrideObject.VirtualMachineAdapter?.DeepCopyIn(foundContext.Record.VirtualMachineAdapter);
+                            if (Compare.NotEqual(foundContext.Record.VirtualMachineAdapter,originalObject.Record.VirtualMachineAdapter))
+                                overrideObject.VirtualMachineAdapter = foundContext.Record.VirtualMachineAdapter?.DeepCopy();
                         }
                         break;
                     }
@@ -194,9 +194,9 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.OpenSound != null && Compare.NotEqual(foundContext.Record.OpenSound,originalObject.Record.OpenSound))
+                            if (Compare.NotEqual(foundContext.Record.OpenSound,originalObject.Record.OpenSound))
                                 overrideObject.OpenSound.SetTo(foundContext.Record.OpenSound);
-                            if (foundContext.Record.CloseSound != null && Compare.NotEqual(foundContext.Record.CloseSound,originalObject.Record.CloseSound)) 
+                            if (Compare.NotEqual(foundContext.Record.CloseSound,originalObject.Record.CloseSound)) 
                                 overrideObject.CloseSound.SetTo(foundContext.Record.CloseSound);
                         }
                         break;

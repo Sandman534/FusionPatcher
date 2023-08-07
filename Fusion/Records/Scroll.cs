@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -39,8 +39,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Destructible != null && Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
-                                overrideObject.Destructible?.DeepCopyIn(foundContext.Record.Destructible);
+                            if (Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
+                                overrideObject.Destructible = foundContext.Record.Destructible?.DeepCopy();
                         }
                         break;
                     }
@@ -62,8 +62,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.MenuDisplayObject != null && Compare.NotEqual(foundContext.Record.MenuDisplayObject,originalObject.Record.MenuDisplayObject))
-                                overrideObject.MenuDisplayObject?.SetTo(foundContext.Record.MenuDisplayObject);
+                            if (Compare.NotEqual(foundContext.Record.MenuDisplayObject,originalObject.Record.MenuDisplayObject))
+                                overrideObject.MenuDisplayObject.SetTo(foundContext.Record.MenuDisplayObject);
                         }
                         break;
                     }
@@ -85,7 +85,7 @@ namespace Fusion
                             NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
                         if (NewKeywords.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords?.SetTo(NewKeywords.OverrideObject);
+                            addedRecord.Keywords = NewKeywords.OverrideObject;
                         }
                     }
                 }
@@ -106,8 +106,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -129,8 +129,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                            if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                                overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
                         }
                         break;
                     }
@@ -154,9 +154,9 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.PickUpSound != null && Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound))
+                            if (Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound))
                                 overrideObject.PickUpSound.SetTo(foundContext.Record.PickUpSound);
-                            if (foundContext.Record.PutDownSound != null && Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound)) 
+                            if (Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound)) 
                                 overrideObject.PutDownSound.SetTo(foundContext.Record.PutDownSound);
                         }
                         break;
@@ -211,7 +211,7 @@ namespace Fusion
                                 overrideObject.CastType = foundContext.Record.CastType;
                             if (Compare.NotEqual(foundContext.Record.ChargeTime,originalObject.Record.ChargeTime))
                                 overrideObject.ChargeTime = foundContext.Record.ChargeTime;
-                            if (foundContext.Record.HalfCostPerk != null && Compare.NotEqual(foundContext.Record.HalfCostPerk,originalObject.Record.HalfCostPerk))
+                            if (Compare.NotEqual(foundContext.Record.HalfCostPerk,originalObject.Record.HalfCostPerk))
                                 overrideObject.HalfCostPerk.SetTo(foundContext.Record.HalfCostPerk);
                             if (Compare.NotEqual(foundContext.Record.Range,originalObject.Record.Range))
                                 overrideObject.Range = foundContext.Record.Range;
@@ -239,8 +239,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Description != null && Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                                overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
+                            if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
+                                overrideObject.Description = Utility.NewString(foundContext.Record.Description);
                         }
                         break;
                     }

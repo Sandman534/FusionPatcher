@@ -4,10 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-
 
 namespace Fusion
 {
@@ -44,7 +42,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Configuration != null && Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
+                            if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
                                 overrideObject.Configuration.DeepCopyIn(foundContext.Record.Configuration);
                         }
                         break;
@@ -67,7 +65,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.AIData != null && Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
+                            if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
                                 overrideObject.AIData.DeepCopyIn(foundContext.Record.AIData);
                         }
                         break;
@@ -104,7 +102,7 @@ namespace Fusion
 
                     if (NewPackages.Modified) {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Packages?.SetTo(NewPackages.OverrideObject);
+                        addedRecord.Packages.SetTo(NewPackages.OverrideObject);
                     }
                 }
 
@@ -130,13 +128,13 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.SpectatorOverridePackageList != null && Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList))
+                            if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList))
                                 overrideObject.SpectatorOverridePackageList.SetTo(foundContext.Record.SpectatorOverridePackageList);
-                            if (foundContext.Record.ObserveDeadBodyOverridePackageList != null && Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList))
+                            if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList))
                                 overrideObject.ObserveDeadBodyOverridePackageList.SetTo(foundContext.Record.ObserveDeadBodyOverridePackageList);
-                            if (foundContext.Record.GuardWarnOverridePackageList != null && Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList))
+                            if (Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList))
                                 overrideObject.GuardWarnOverridePackageList.SetTo(foundContext.Record.GuardWarnOverridePackageList);
-                            if (foundContext.Record.CombatOverridePackageList != null && Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
+                            if (Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
                                 overrideObject.CombatOverridePackageList.SetTo(foundContext.Record.CombatOverridePackageList);
                         }
                         break;
@@ -159,8 +157,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.AttackRace != null && Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
-                                overrideObject.AttackRace?.SetTo(foundContext.Record.AttackRace);
+                            if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
+                                overrideObject.AttackRace.SetTo(foundContext.Record.AttackRace);
                         }
                         break;
                     }
@@ -182,8 +180,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Class != null && Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
-                                overrideObject.Class?.SetTo(foundContext.Record.Class);
+                            if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
+                                overrideObject.Class.SetTo(foundContext.Record.Class);
                         }
                         break;
                     }
@@ -205,8 +203,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.CombatStyle != null && Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
-                                overrideObject.CombatStyle?.SetTo(foundContext.Record.CombatStyle);
+                            if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
+                                overrideObject.CombatStyle.SetTo(foundContext.Record.CombatStyle);
                         }
                         break;
                     }
@@ -228,8 +226,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.CrimeFaction != null && Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
-                                overrideObject.CrimeFaction?.SetTo(foundContext.Record.CrimeFaction);
+                            if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
+                                overrideObject.CrimeFaction.SetTo(foundContext.Record.CrimeFaction);
                         }
                         break;
                     }
@@ -251,8 +249,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.DeathItem != null && Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
-                                overrideObject.DeathItem?.SetTo(foundContext.Record.DeathItem);
+                            if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
+                                overrideObject.DeathItem.SetTo(foundContext.Record.DeathItem);
                         }
                         break;
                     }
@@ -276,10 +274,10 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.DefaultOutfit != null && Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit))
-                                overrideObject.DefaultOutfit?.SetTo(foundContext.Record.DefaultOutfit);
-                            if (foundContext.Record.Template != null && Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
-                                overrideObject.Template?.SetTo(foundContext.Record.Template);
+                            if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit))
+                                overrideObject.DefaultOutfit.SetTo(foundContext.Record.DefaultOutfit);
+                            if (Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
+                                overrideObject.Template.SetTo(foundContext.Record.Template);
                         }
                         break;
                     }
@@ -301,7 +299,7 @@ namespace Fusion
                             NewFaction.Remove(context.Record.Factions, originalObject.Record.Factions);    
                         if (NewFaction.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Factions?.SetTo(NewFaction.OverrideObject);
+                            addedRecord.Factions.SetTo(NewFaction.OverrideObject);
                         }
                     }
                 }
@@ -339,7 +337,7 @@ namespace Fusion
 
                     if (NewContainer.Modified) {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Items?.SetTo(NewContainer.OverrideObject);
+                        addedRecord.Items = NewContainer.OverrideObject;
                     }
                 }
                 
@@ -359,7 +357,7 @@ namespace Fusion
                             NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
                         if (NewKeywords.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords?.SetTo(NewKeywords.OverrideObject);
+                            addedRecord.Keywords = NewKeywords.OverrideObject;
                         }
                     }
                 }
@@ -380,8 +378,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -417,24 +415,24 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (overrideObject.HeadParts.Count > 0 && Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts))
+                            if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts))
                             {
                                 overrideObject.HeadParts.Clear();
                                 overrideObject.HeadParts.AddRange(foundContext.Record.HeadParts); 
                             }
-                            if (foundContext.Record.HairColor != null && Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor))
+                            if (Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor))
                                 overrideObject.HairColor.SetTo(foundContext.Record.HairColor);
-                            if (foundContext.Record.HeadTexture != null && Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture))
+                            if (Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture))
                                 overrideObject.HeadTexture.SetTo(foundContext.Record.HeadTexture);
                             if (Compare.NotEqual(foundContext.Record.TextureLighting,originalObject.Record.TextureLighting))
                                 overrideObject.TextureLighting = foundContext.Record.TextureLighting;
                             if (Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
                                 overrideObject.Weight = foundContext.Record.Weight;
-                            if (foundContext.Record.FaceMorph != null && Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph))
-                                overrideObject.FaceMorph?.DeepCopyIn(foundContext.Record.FaceMorph);
-                            if (foundContext.Record.FaceParts != null && Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts))
-                                overrideObject.FaceParts?.DeepCopyIn(foundContext.Record.FaceParts);
-                            if (overrideObject.TintLayers?.Count > 0 && Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers))
+                            if (Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph))
+                                overrideObject.FaceMorph = foundContext.Record.FaceMorph?.DeepCopy();
+                            if (Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts))
+                                overrideObject.FaceParts = foundContext.Record.FaceParts?.DeepCopy();
+                            if(Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers))
                             {
                                 overrideObject.TintLayers.Clear();
                                 foreach (var tint in foundContext.Record.TintLayers)
@@ -477,7 +475,7 @@ namespace Fusion
 
                     if (NewPerks.Modified) {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Perks?.SetTo(NewPerks.OverrideObject);
+                        addedRecord.Perks = NewPerks.OverrideObject;
                     }
                 }
 
@@ -497,8 +495,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Race != null && Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
-                                overrideObject.Race?.SetTo(foundContext.Record.Race);
+                            if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
+                                overrideObject.Race.SetTo(foundContext.Record.Race);
                         }
                         break;
                     }
@@ -510,38 +508,17 @@ namespace Fusion
                 if (Settings.HasTags("Actors.RecordFlags", out var RecordFlags))
                 {
                     // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => RecordFlags.Contains(context.ModKey) && (!context.Record.SkyrimMajorRecordFlags.Equals(originalObject.Record.SkyrimMajorRecordFlags)));
+                    var foundContext = modContext.Where(context => RecordFlags.Contains(context.ModKey) && Compare.NotEqual(context.Record.SkyrimMajorRecordFlags,originalObject.Record.SkyrimMajorRecordFlags));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        Npc.SkyrimMajorRecordFlag overrideObject = workingContext.Record.SkyrimMajorRecordFlags;
-
-                        // Add Records
-                        bool Change = false;
+                        Flags<Npc.SkyrimMajorRecordFlag> NewFlags = new(workingContext.Record.SkyrimMajorRecordFlags);
                         foreach (var context in foundContext)
-                            foreach (var rec in Enums<Npc.SkyrimMajorRecordFlag>.Values)
-                                if (context.Record.SkyrimMajorRecordFlags.HasFlag(rec) && !originalObject.Record.SkyrimMajorRecordFlags.HasFlag(rec) && !overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject |= rec;
-                                    Change = true;
-                                }
-
-                        // Remove Records
+                            NewFlags.Add(context.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
                         foreach (var context in foundContext.Reverse())
-                            foreach (var rec in Enums<Npc.SkyrimMajorRecordFlag>.Values)
-                                if (!context.Record.SkyrimMajorRecordFlags.HasFlag(rec) && originalObject.Record.SkyrimMajorRecordFlags.HasFlag(rec) && overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject &= ~rec;
-                                    Change = true;
-                                }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewFlags.Remove(context.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
+                        if (NewFlags.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            foreach (var rec in Enums<Npc.SkyrimMajorRecordFlag>.Values)
-                                if (overrideObject.HasFlag(rec) && !addedRecord.SkyrimMajorRecordFlags.HasFlag(rec)) addedRecord.SkyrimMajorRecordFlags |= rec;
-                                else if (!overrideObject.HasFlag(rec) && addedRecord.SkyrimMajorRecordFlags.HasFlag(rec)) addedRecord.SkyrimMajorRecordFlags &= ~rec;
+                            addedRecord.SkyrimMajorRecordFlags = NewFlags.OverrideObject;
                         }
                     }
                 }
@@ -562,8 +539,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Voice != null && Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
-                                overrideObject.Voice?.SetTo(foundContext.Record.Voice);
+                            if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
+                                overrideObject.Voice.SetTo(foundContext.Record.Voice);
                         }
                         break;
                     }

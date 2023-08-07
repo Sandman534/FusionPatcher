@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -39,8 +39,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Destructible != null && Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
-                                overrideObject.Destructible?.DeepCopyIn(foundContext.Record.Destructible);
+                            if (Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
+                                overrideObject.Destructible = foundContext.Record.Destructible?.DeepCopy();
                         }
                         break;
                     }
@@ -62,8 +62,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectEffect != null && Compare.NotEqual(foundContext.Record.ObjectEffect,originalObject.Record.ObjectEffect))
-                                overrideObject.ObjectEffect?.SetTo(foundContext.Record.ObjectEffect);
+                            if (Compare.NotEqual(foundContext.Record.ObjectEffect,originalObject.Record.ObjectEffect))
+                                overrideObject.ObjectEffect.SetTo(foundContext.Record.ObjectEffect);
                         }
                         break;
                     }
@@ -116,7 +116,7 @@ namespace Fusion
                             NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
                         if (NewKeywords.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords?.SetTo(NewKeywords.OverrideObject);
+                            addedRecord.Keywords = NewKeywords.OverrideObject;
                         }
                     }
                 }
@@ -137,8 +137,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -160,8 +160,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                            if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                                overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
                         }
                         break;
                     }
@@ -201,23 +201,23 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.AttackSound != null && Compare.NotEqual(foundContext.Record.AttackSound,originalObject.Record.AttackSound))
+                            if (Compare.NotEqual(foundContext.Record.AttackSound,originalObject.Record.AttackSound))
                                 overrideObject.AttackSound.SetTo(foundContext.Record.AttackSound);
-                            if (foundContext.Record.AttackSound2D != null && Compare.NotEqual(foundContext.Record.AttackSound2D,originalObject.Record.AttackSound2D))
+                            if (Compare.NotEqual(foundContext.Record.AttackSound2D,originalObject.Record.AttackSound2D))
                                 overrideObject.AttackSound2D.SetTo(foundContext.Record.AttackSound2D);
-                            if (foundContext.Record.AttackLoopSound != null && Compare.NotEqual(foundContext.Record.AttackLoopSound,originalObject.Record.AttackLoopSound))
+                            if (Compare.NotEqual(foundContext.Record.AttackLoopSound,originalObject.Record.AttackLoopSound))
                                 overrideObject.AttackLoopSound.SetTo(foundContext.Record.AttackLoopSound);
-                            if (foundContext.Record.AttackFailSound != null && Compare.NotEqual(foundContext.Record.AttackFailSound,originalObject.Record.AttackFailSound))
+                            if (Compare.NotEqual(foundContext.Record.AttackFailSound,originalObject.Record.AttackFailSound))
                                 overrideObject.AttackFailSound.SetTo(foundContext.Record.AttackFailSound);
-                            if (foundContext.Record.IdleSound != null && Compare.NotEqual(foundContext.Record.IdleSound,originalObject.Record.IdleSound))
+                            if (Compare.NotEqual(foundContext.Record.IdleSound,originalObject.Record.IdleSound))
                                 overrideObject.IdleSound.SetTo(foundContext.Record.IdleSound);
-                            if (foundContext.Record.EquipSound != null && Compare.NotEqual(foundContext.Record.EquipSound,originalObject.Record.EquipSound))
+                            if (Compare.NotEqual(foundContext.Record.EquipSound,originalObject.Record.EquipSound))
                                 overrideObject.EquipSound.SetTo(foundContext.Record.EquipSound);
-                            if (foundContext.Record.UnequipSound != null && Compare.NotEqual(foundContext.Record.UnequipSound,originalObject.Record.UnequipSound))
+                            if (Compare.NotEqual(foundContext.Record.UnequipSound,originalObject.Record.UnequipSound))
                                 overrideObject.UnequipSound.SetTo(foundContext.Record.UnequipSound);
-                            if (foundContext.Record.PickUpSound != null && Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound))
+                            if (Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound))
                                 overrideObject.PickUpSound.SetTo(foundContext.Record.PickUpSound);
-                            if (foundContext.Record.PutDownSound != null && Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound))
+                            if (Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound))
                                 overrideObject.PutDownSound.SetTo(foundContext.Record.PutDownSound);
                             if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
                                 overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
@@ -254,19 +254,19 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.EditorID != null && Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID))
+                            if (Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID))
                                 overrideObject.EditorID = foundContext.Record.EditorID;
-                            if (foundContext.Record.Data != null && Compare.NotEqual(foundContext.Record.Data,originalObject.Record.Data))
-                                overrideObject.Data?.DeepCopyIn(foundContext.Record.Data);
-                            if (foundContext.Record.Critical != null && Compare.NotEqual(foundContext.Record.Critical,originalObject.Record.Critical))
-                                overrideObject.Critical?.DeepCopyIn(foundContext.Record.Critical);
-                            if (foundContext.Record.BasicStats != null && Compare.NotEqual(foundContext.Record.BasicStats,originalObject.Record.BasicStats))
-                                overrideObject.BasicStats?.DeepCopyIn(foundContext.Record.BasicStats);
-                            if (foundContext.Record.ImpactDataSet != null && Compare.NotEqual(foundContext.Record.ImpactDataSet,originalObject.Record.ImpactDataSet))
+                            if (Compare.NotEqual(foundContext.Record.Data,originalObject.Record.Data))
+                                overrideObject.Data = foundContext.Record.Data?.DeepCopy();
+                            if (Compare.NotEqual(foundContext.Record.Critical,originalObject.Record.Critical))
+                                overrideObject.Critical = foundContext.Record.Critical?.DeepCopy();
+                            if (Compare.NotEqual(foundContext.Record.BasicStats,originalObject.Record.BasicStats))
+                                overrideObject.BasicStats = foundContext.Record.BasicStats?.DeepCopy();
+                            if (Compare.NotEqual(foundContext.Record.ImpactDataSet,originalObject.Record.ImpactDataSet))
                                 overrideObject.ImpactDataSet.SetTo(foundContext.Record.ImpactDataSet);
-                            if (foundContext.Record.AlternateBlockMaterial != null && Compare.NotEqual(foundContext.Record.AlternateBlockMaterial,originalObject.Record.AlternateBlockMaterial))
+                            if (Compare.NotEqual(foundContext.Record.AlternateBlockMaterial,originalObject.Record.AlternateBlockMaterial))
                                 overrideObject.AlternateBlockMaterial.SetTo(foundContext.Record.AlternateBlockMaterial);
-                            if (foundContext.Record.DetectionSoundLevel != null && Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
+                            if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
                                 overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
                         }
                         break;
@@ -289,8 +289,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Description != null && Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                                overrideObject.Description?.Set(foundContext.Record.Description.TargetLanguage, foundContext.Record.Description.String);
+                            if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
+                                overrideObject.Description = Utility.NewString(foundContext.Record.Description);
                         }
                         break;
                     }

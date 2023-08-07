@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -41,14 +41,10 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.WorldModel?.Male != null && Compare.NotEqual(foundContext.Record.WorldModel.Male,originalObject.Record.WorldModel?.Male)) 
-                                overrideObject.WorldModel?.Male?.DeepCopyIn(foundContext.Record.WorldModel.Male);
-                            if (foundContext.Record.WorldModel?.Female != null && Compare.NotEqual(foundContext.Record.WorldModel.Female,originalObject.Record.WorldModel?.Female))
-                                overrideObject.WorldModel?.Female?.DeepCopyIn(foundContext.Record.WorldModel.Female);
-                            if (foundContext.Record.FirstPersonModel?.Male != null && Compare.NotEqual(foundContext.Record.FirstPersonModel.Male,originalObject.Record.FirstPersonModel?.Male)) 
-                                overrideObject.FirstPersonModel?.Male?.DeepCopyIn(foundContext.Record.FirstPersonModel.Male);
-                            if (foundContext.Record.FirstPersonModel?.Female != null && Compare.NotEqual(foundContext.Record.FirstPersonModel.Female,originalObject.Record.FirstPersonModel?.Female)) 
-                                overrideObject.FirstPersonModel?.Female?.DeepCopyIn(foundContext.Record.FirstPersonModel.Female);
+                            if (Compare.NotEqual(foundContext.Record.WorldModel,originalObject.Record.WorldModel)) 
+                                overrideObject.WorldModel = Utility.NewGender<Model>(foundContext.Record.WorldModel?.Male?.DeepCopy(), foundContext.Record.WorldModel?.Female?.DeepCopy());
+                            if (Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel)) 
+                                overrideObject.FirstPersonModel = Utility.NewGender<Model>(foundContext.Record.FirstPersonModel?.Male?.DeepCopy(), foundContext.Record.FirstPersonModel?.Female?.DeepCopy());
                         }
                         break;
                     }
@@ -70,7 +66,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.FootstepSound != null && Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
+                            if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
                                 overrideObject.FootstepSound.SetTo(foundContext.Record.FootstepSound);
                         }
                         break;

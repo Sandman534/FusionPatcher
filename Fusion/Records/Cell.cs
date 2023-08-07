@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -40,7 +40,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.AcousticSpace != null && Compare.NotEqual(foundContext.Record.AcousticSpace,originalObject.Record.AcousticSpace))
+                            if (Compare.NotEqual(foundContext.Record.AcousticSpace,originalObject.Record.AcousticSpace))
                                 overrideObject.AcousticSpace.SetTo(foundContext.Record.AcousticSpace);
                         }
                         break;
@@ -63,7 +63,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.SkyAndWeatherFromRegion != null && Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,originalObject.Record.SkyAndWeatherFromRegion))
+                            if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,originalObject.Record.SkyAndWeatherFromRegion))
                                 overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
                         }
                         break;
@@ -86,7 +86,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.EncounterZone != null && Compare.NotEqual(foundContext.Record.EncounterZone,originalObject.Record.EncounterZone))
+                            if (Compare.NotEqual(foundContext.Record.EncounterZone,originalObject.Record.EncounterZone))
                                 overrideObject.EncounterZone.SetTo(foundContext.Record.EncounterZone);
                         }
                         break;
@@ -109,7 +109,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ImageSpace != null && Compare.NotEqual(foundContext.Record.ImageSpace,originalObject.Record.ImageSpace))
+                            if (Compare.NotEqual(foundContext.Record.ImageSpace,originalObject.Record.ImageSpace))
                                 overrideObject.ImageSpace.SetTo(foundContext.Record.ImageSpace);
                         }
                         break;
@@ -134,9 +134,9 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Lighting != null && Compare.NotEqual(foundContext.Record.Lighting,originalObject.Record.Lighting))
-                                overrideObject.Lighting?.DeepCopyIn(foundContext.Record.Lighting);
-                            if (foundContext.Record.LightingTemplate != null && Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
+                            if (Compare.NotEqual(foundContext.Record.Lighting,originalObject.Record.Lighting))
+                                overrideObject.Lighting = foundContext.Record.Lighting?.DeepCopy();
+                            if (Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
                                 overrideObject.LightingTemplate.SetTo(foundContext.Record.LightingTemplate);
                         }
                         break;
@@ -159,7 +159,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.LockList != null && Compare.NotEqual(foundContext.Record.LockList,originalObject.Record.LockList))
+                            if (Compare.NotEqual(foundContext.Record.LockList,originalObject.Record.LockList))
                                 overrideObject.LockList.SetTo(foundContext.Record.LockList);
                         }
                         break;
@@ -182,7 +182,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Location != null && Compare.NotEqual(foundContext.Record.Location,originalObject.Record.Location))
+                            if (Compare.NotEqual(foundContext.Record.Location,originalObject.Record.Location))
                                 overrideObject.Location.SetTo(foundContext.Record.Location);
                         }
                         break;
@@ -198,35 +198,14 @@ namespace Fusion
                     var foundContext = modContext.Where(context => MisFlags.Contains(context.ModKey) && Compare.NotEqual(context.Record.Flags,originalObject.Record.Flags));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        Cell.Flag overrideObject = workingContext.Record.Flags;
-
-                        // Add Records
-                        bool Change = false;
+                        Flags<Cell.Flag> NewFlags = new(workingContext.Record.Flags);
                         foreach (var context in foundContext)
-                            foreach (var rec in Enums<Cell.Flag>.Values)
-                                if (context.Record.Flags.HasFlag(rec) && !originalObject.Record.Flags.HasFlag(rec) && !overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject |= rec;
-                                    Change = true;
-                                }
-
-                        // Remove Records
+                            NewFlags.Add(context.Record.Flags, originalObject.Record.Flags);
                         foreach (var context in foundContext.Reverse())
-                            foreach (var rec in Enums<Cell.Flag>.Values)
-                                if (!context.Record.Flags.HasFlag(rec) && originalObject.Record.Flags.HasFlag(rec) && overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject &= ~rec;
-                                    Change = true;
-                                }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewFlags.Remove(context.Record.Flags, originalObject.Record.Flags);
+                        if (NewFlags.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            foreach (var rec in Enums<Cell.Flag>.Values)
-                                if (overrideObject.HasFlag(rec) && !addedRecord.Flags.HasFlag(rec)) addedRecord.Flags |= rec;
-                                else if (!overrideObject.HasFlag(rec) && addedRecord.Flags.HasFlag(rec)) addedRecord.Flags &= ~rec;
+                            addedRecord.Flags = NewFlags.OverrideObject;
                         }
                     }
                 }
@@ -247,7 +226,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Music != null && Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
+                            if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                 overrideObject.Music.SetTo(foundContext.Record.Music);
                         }
                         break;
@@ -270,8 +249,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Name != null && Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name?.Set(foundContext.Record.Name.TargetLanguage, foundContext.Record.Name.String);
+                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                         }
                         break;
                     }
@@ -293,7 +272,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Owner != null && Compare.NotEqual(foundContext.Record.Owner,originalObject.Record.Owner))
+                            if (Compare.NotEqual(foundContext.Record.Owner,originalObject.Record.Owner))
                                 overrideObject.Owner.SetTo(foundContext.Record.Owner);
                         }
                         break;
@@ -309,35 +288,14 @@ namespace Fusion
                     var foundContext = modContext.Where(context => RecordFlags.Contains(context.ModKey) && Compare.NotEqual(context.Record.MajorFlags,originalObject.Record.MajorFlags));
                     if (foundContext.Any())
                     {
-                        // Create list and fill it with Last Record or Patch Record
-                        Cell.MajorFlag overrideObject = workingContext.Record.MajorFlags;
-
-                        // Add Records
-                        bool Change = false;
+                        Flags<Cell.MajorFlag> NewFlags = new(workingContext.Record.MajorFlags);
                         foreach (var context in foundContext)
-                            foreach (var rec in Enums<Cell.MajorFlag>.Values)
-                                if (context.Record.MajorFlags.HasFlag(rec) && !originalObject.Record.MajorFlags.HasFlag(rec) && !overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject |= rec;
-                                    Change = true;
-                                }
-
-                        // Remove Records
+                            NewFlags.Add(context.Record.MajorFlags, originalObject.Record.MajorFlags);
                         foreach (var context in foundContext.Reverse())
-                            foreach (var rec in Enums<Cell.MajorFlag>.Values)
-                                if (!context.Record.MajorFlags.HasFlag(rec) && originalObject.Record.MajorFlags.HasFlag(rec) && overrideObject.HasFlag(rec))
-                                {
-                                    overrideObject &= ~rec;
-                                    Change = true;
-                                }
-
-                        // If changes were made, override and write back
-                        if (Change)
-                        {
+                            NewFlags.Remove(context.Record.MajorFlags, originalObject.Record.MajorFlags);
+                        if (NewFlags.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            foreach (var rec in Enums<Cell.MajorFlag>.Values)
-                                if (overrideObject.HasFlag(rec) && !addedRecord.MajorFlags.HasFlag(rec)) addedRecord.MajorFlags |= rec;
-                                else if (!overrideObject.HasFlag(rec) && addedRecord.MajorFlags.HasFlag(rec)) addedRecord.MajorFlags &= ~rec;
+                            addedRecord.MajorFlags = NewFlags.OverrideObject;
                         }
                     }
                 }
@@ -358,7 +316,7 @@ namespace Fusion
                             NewRegions.Remove(context.Record.Regions, originalObject.Record.Regions);
                         if (NewRegions.Modified) {
                             var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Regions?.SetTo(NewRegions.OverrideObject);
+                            addedRecord.Regions = NewRegions.OverrideObject;
                         }
                     }
                 }
@@ -385,12 +343,7 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.Lighting != null && Compare.NotEqual(foundContext.Record.Lighting,originalObject.Record.Lighting))
-                                overrideObject.Lighting?.DeepCopyIn(foundContext.Record.Lighting);
-                            if (foundContext.Record.LightingTemplate != null && Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
-                                overrideObject.LightingTemplate.SetTo(foundContext.Record.LightingTemplate);
-
-                            if (foundContext.Record.Water != null && Compare.NotEqual(foundContext.Record.Water,originalObject.Record.Water))
+                            if (Compare.NotEqual(foundContext.Record.Water,originalObject.Record.Water))
                                 overrideObject.Water.SetTo(foundContext.Record.Water);
                             if (Compare.NotEqual(foundContext.Record.WaterHeight,originalObject.Record.WaterHeight))
                                 overrideObject.WaterHeight = foundContext.Record.WaterHeight;

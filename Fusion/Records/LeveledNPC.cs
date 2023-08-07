@@ -4,8 +4,8 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Strings;
 using Noggog;
-using System.Collections.Immutable;
 
 namespace Fusion
 {
@@ -80,10 +80,9 @@ namespace Fusion
                     if (Change)
                     {
                         var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Entries?.SetTo(overrideObject);
+                        addedRecord.Entries = overrideObject;
                     }
                 }
-
 
                 //==============================================================================================================
                 // Object Bounds
@@ -101,8 +100,8 @@ namespace Fusion
                         if (Change)
                         {
                             var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
+                            if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                                overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
                         }
                         break;
                     }

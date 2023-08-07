@@ -142,25 +142,25 @@ public static class Compare
 
         // Colors
         if (Record1 != null && Record2 != null)
-            if (Record1.AmbientColor.ToArgb != Record2.AmbientColor.ToArgb
-                || Record1.DirectionalColor.ToArgb != Record2.DirectionalColor.ToArgb
-                || Record1.FogNearColor.ToArgb != Record2.FogNearColor.ToArgb
-                || Record1.FogFarColor.ToArgb != Record2.FogFarColor.ToArgb)
+            if (Record1.AmbientColor.ToArgb() != Record2.AmbientColor.ToArgb()
+                || Record1.DirectionalColor.ToArgb() != Record2.DirectionalColor.ToArgb()
+                || Record1.FogNearColor.ToArgb() != Record2.FogNearColor.ToArgb()
+                || Record1.FogFarColor.ToArgb() != Record2.FogFarColor.ToArgb())
                 return true;
 
         // Ambient Colors
         if (Record1 != null && Record2 != null)
         {
-            if (Record1.AmbientColors.Specular.ToArgb != Record2.AmbientColors.Specular.ToArgb)
+            if (Record1.AmbientColors.Specular.ToArgb() != Record2.AmbientColors.Specular.ToArgb())
                 return true;
             if (Record1.AmbientColors.Scale != Record2.AmbientColors.Scale)
                 return true;
-            if (Record1.AmbientColors.DirectionalXPlus.ToArgb != Record2.AmbientColors.DirectionalXPlus.ToArgb
-                || Record1.AmbientColors.DirectionalXMinus.ToArgb != Record2.AmbientColors.DirectionalXMinus.ToArgb
-                || Record1.AmbientColors.DirectionalYPlus.ToArgb != Record2.AmbientColors.DirectionalYPlus.ToArgb
-                || Record1.AmbientColors.DirectionalYMinus.ToArgb != Record2.AmbientColors.DirectionalYMinus.ToArgb
-                || Record1.AmbientColors.DirectionalZPlus.ToArgb != Record2.AmbientColors.DirectionalZPlus.ToArgb
-                || Record1.AmbientColors.DirectionalZMinus.ToArgb != Record2.AmbientColors.DirectionalZMinus.ToArgb)
+            if (Record1.AmbientColors.DirectionalXPlus.ToArgb() != Record2.AmbientColors.DirectionalXPlus.ToArgb()
+                || Record1.AmbientColors.DirectionalXMinus.ToArgb() != Record2.AmbientColors.DirectionalXMinus.ToArgb()
+                || Record1.AmbientColors.DirectionalYPlus.ToArgb() != Record2.AmbientColors.DirectionalYPlus.ToArgb()
+                || Record1.AmbientColors.DirectionalYMinus.ToArgb() != Record2.AmbientColors.DirectionalYMinus.ToArgb()
+                || Record1.AmbientColors.DirectionalZPlus.ToArgb() != Record2.AmbientColors.DirectionalZPlus.ToArgb()
+                || Record1.AmbientColors.DirectionalZMinus.ToArgb() != Record2.AmbientColors.DirectionalZMinus.ToArgb())
                 return true;
         }
 
@@ -651,7 +651,7 @@ public static class Compare
     {
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        else if (Record1 != null && Record2 != null && Record1.Value.ToArgb != Record2.Value.ToArgb)
+        else if (Record1 != null && Record2 != null && Record1.Value.ToArgb() != Record2.Value.ToArgb())
             return true;
         else
             return false;
@@ -719,6 +719,26 @@ public static class Compare
 
 }
 
+public class Utility
+{
+    public static GenderedItem<T?>? NewGender<T>(T? Male, T? Female)
+    {
+        if (Male == null && Female == null) return null;
+        else return new GenderedItem<T?>(Male, Female);
+    }
+
+    public static TranslatedString? NewString(ITranslatedStringGetter? text)
+    {
+        if (text == null) return null;
+        else return new TranslatedString(text.TargetLanguage, text.String);
+    }
+
+    public static TranslatedString NewStringNotNull(ITranslatedStringGetter text)
+    {
+        return new TranslatedString(text.TargetLanguage, text.String);
+    }
+}
+
 public class Keywords
 {
     public ExtendedList<IFormLinkGetter<IKeywordGetter>> OverrideObject {get; set;}
@@ -757,6 +777,38 @@ public class Keywords
                     }
     }
 
+}
+
+public class Flags<TEnum> where TEnum : struct, System.Enum
+{
+    public TEnum OverrideObject {get; set;}
+    public bool Modified;
+
+    public Flags(TEnum WorkingRecord)
+    {
+        OverrideObject = WorkingRecord;
+        Modified = false;     
+    }
+    
+    public void Add(TEnum FoundObject, TEnum OriginalObject)
+    {
+        foreach (dynamic rec in Enums<TEnum>.Values)
+            if (FoundObject.HasFlag(rec) && !OriginalObject.HasFlag(rec) && !OverrideObject.HasFlag(rec))
+            {
+                OverrideObject |= rec;
+                Modified = true;
+            }
+    }
+    
+    public void Remove(TEnum FoundObject, TEnum OriginalObject)
+    {
+        foreach (dynamic rec in Enums<TEnum>.Values)
+            if (!FoundObject.HasFlag(rec) && OriginalObject.HasFlag(rec) && OverrideObject.HasFlag(rec))
+            {
+                OverrideObject &= ~rec;
+                Modified = true;
+            }
+    }
 }
 
 public class Regions
