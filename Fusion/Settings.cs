@@ -1,15 +1,11 @@
-using DynamicData;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.WPF.Reflection.Attributes;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using System.Collections.Immutable;
-using Mutagen.Bethesda.Plugins.Binary.Headers;
-using Mutagen.Bethesda;
-using System.Security.Policy;
 using Noggog;
-using Mutagen.Bethesda.Fallout4;
-using Microsoft.CodeAnalysis.CSharp;
+using Newtonsoft.Json;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
 
 namespace Fusion
 {
@@ -17,6 +13,9 @@ namespace Fusion
     {
         [SettingName("Use Bash Tags")]
         public bool BashTags = true;
+
+        [SettingName("Use Bash Tags from LOOT")]
+        public bool BashTagsLoot = true;
 
         [SettingName("No Merge")]
         public List<ModKey> settingsNoMerge = new();
@@ -26,6 +25,9 @@ namespace Fusion
 
         [SettingName("Cells")]
         public List<ModKey> settingsCells = new();
+
+        [SettingName("Cell Tags")]
+        public List<CellSettings> granularCells = new() { new CellSettings()};
 
         [SettingName("Destuctibles")]
         public List<ModKey> settingsDestructibles = new();
@@ -87,13 +89,61 @@ namespace Fusion
         }
     }
 
+    public class CellSettings
+    {
+        [SettingName("C.Acoustic")]
+        public List<ModKey> cellAcoustic = new();
+        [SettingName("C.Climate")]
+        public List<ModKey> cellClimate = new();
+        [SettingName("C.Encounter")]
+        public List<ModKey> cellEncounter = new();
+        [SettingName("C.ImageSpace")]
+        public List<ModKey> cellImageSpace = new();
+        [SettingName("C.Light")]
+        public List<ModKey> cellLight = new();
+        [SettingName("C.LockList")]
+        public List<ModKey> cellLockList = new();
+        [SettingName("C.Location")]
+        public List<ModKey> cellLocation = new();
+        [SettingName("C.MiscFlags")]
+        public List<ModKey> cellMiscFlags = new();
+        [SettingName("C.Music")]
+        public List<ModKey> cellMusic = new();
+        [SettingName("C.Name")]
+        public List<ModKey> cellName = new();
+        [SettingName("C.Owner")]
+        public List<ModKey> cellOwner = new();
+        [SettingName("C.RecordFlags")]
+        public List<ModKey> cellRecordFlags = new();
+        [SettingName("C.Regions")]
+        public List<ModKey> cellRegions = new();
+        [SettingName("C.SkyLighting")]
+        public List<ModKey> cellSkyLighting = new();
+        [SettingName("C.Water")]
+        public List<ModKey> cellWater = new();
+    }
+
+    public class LootTag 
+    {
+        public string ModName {get; set;}
+        public List<string> TagList {get; set;}
+
+        public LootTag(string Name)
+        {
+            ModName = Name;
+            TagList = new List<string>();
+        }
+    }
+
     public class SettingsUtility
     {
         public List<TagSetting> AllSettings;
+        public List<LootTag> LootTags;
 
         public SettingsUtility()
         {
             AllSettings = new();
+            LootTags = new();
         }
 
         public HashSet<ModKey> GetModList(string BashTags)
@@ -105,6 +155,22 @@ namespace Fusion
                     ModList.Add(ts.Key);
 
             return new HashSet<ModKey>(ModList);
+        }
+
+        public List<string> GetLootList(string FileName)
+        {
+            List<string> ReturnList = new();
+
+            foreach(LootTag s in LootTags)
+                if (s.ModName == FileName)
+                {
+                    foreach(string tag in s.TagList)
+                        ReturnList.Add(tag);
+
+                    break;
+                }
+
+            return ReturnList;
         }
 
         public bool HasTags(string BashTag)
@@ -209,43 +275,111 @@ namespace Fusion
             return FixedTagList;
         }
 
+        private void ProcessLOOTMaster()
+        {
+            // Get LOOT AppData Folder
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\Skyrim Special Edition\\masterlist.yaml";
+            if (!File.Exists(path)) return;
+
+            // Process the YAML to JSON for easier serializaiton
+            using StreamReader reader = File.OpenText(path);
+            var deserializer = new DeserializerBuilder().Build();
+            var yamlObject = deserializer.Deserialize(new MergingParser(new Parser(reader)));
+            var serializer = new SerializerBuilder().JsonCompatible().Build();
+            var json = serializer.Serialize(yamlObject);
+            Rootobject? LOOTList = JsonConvert.DeserializeObject<Rootobject>(json);
+
+            // Process the List
+            if (LOOTList?.plugins != null)
+                foreach (var plugin in LOOTList.plugins)
+                    if (plugin.tag != null && plugin.name != null)
+                    {
+                        LootTag NewTag = new(plugin.name);
+                        foreach (var tag in plugin.tag)
+                            if (tag != null)
+                                NewTag.TagList.Add(tag.ToString() ?? "");
+
+                        LootTags.Add(NewTag);
+                    }
+        }
+
         public void Process(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, Settings UserSettings)
         {
-            // Process Bash Tags
-            if (UserSettings.BashTags)
-            {
-                foreach(var mod in state.LoadOrder.ListedOrder)
-                {
-                    // Skip Mod
-                    if (UserSettings.settingsNoMerge.Contains(mod.ModKey))
-                        continue;
+            // Process LOOT Master List
+            if (UserSettings.BashTagsLoot)
+                ProcessLOOTMaster();
 
+            // Process Bash Tags
+            foreach(var mod in state.LoadOrder.ListedOrder)
+            {
+                // Skip Mod
+                if (UserSettings.settingsNoMerge.Contains(mod.ModKey))
+                    continue;
+
+                // Bash Tags in Mod Descriptions
+                if (UserSettings.BashTags)
+                {
                     // Get Description
                     string modDescr = mod.Mod?.ModHeader.Description ?? "";
 
                     // No Tags Found
-                    if (!modDescr.Contains("BASH:"))
-                        continue;
-
-                    // Process Bash Tags
-                    int start = modDescr.IndexOf("{{BASH:") + 1;
-                    int end = modDescr.IndexOf("}}", start);
-                    string bashTags = modDescr[start..end];
-                    string[] bashArray = bashTags.Split(',');
-
-                    foreach (var bash in bashArray)
+                    if (modDescr.Contains("BASH:"))
                     {
-                        // Fix BASH: Showing in tag
-                        string FixedTag = bash.Replace("{BASH:", "");
-                        
-                        // Legacy Tags
-                        foreach (var tag in LegacyTagFix(FixedTag))
-                            AllSettings.Add(new TagSetting(tag, mod.ModKey));
+
+                        // Process Bash Tags
+                        int start = modDescr.IndexOf("{{BASH:") + 1;
+                        int end = modDescr.IndexOf("}}", start);
+
+                        // Check length for Substring
+                        if (start >= 0 && end >= 0)
+                        {
+                            string bashTags = modDescr[start..end];
+                            string[] bashArray = bashTags.Split(',');
+
+                            foreach (var bash in bashArray)
+                            {
+                                // Fix BASH: Showing in tag
+                                string FixedTag = bash.Replace("{BASH:", "");
+                                
+                                // Legacy Tags
+                                foreach (var tag in LegacyTagFix(FixedTag))
+                                    AllSettings.Add(new TagSetting(tag, mod.ModKey));
+                            }
+                        }
                     }
+                }
+
+                // Process LOOT Master List
+                if (UserSettings.BashTagsLoot)
+                {
+                    List<string> tags = GetLootList(mod.ModKey.FileName.ToString());
+                    foreach(string tag in tags)
+                        foreach (var fixedtag in LegacyTagFix(tag.Replace("-",string.Empty)))
+                            AllSettings.Add(new TagSetting(fixedtag, mod.ModKey));
                 }
             }
 
-            // Process Manual Settings
+            // Process Cell Settings
+            foreach(var setting in UserSettings.granularCells)
+            {
+                ProcessUserSetting(setting.cellAcoustic,"C.Acoustic");
+                ProcessUserSetting(setting.cellClimate,"C.Climate");
+                ProcessUserSetting(setting.cellEncounter,"C.Encounter");
+                ProcessUserSetting(setting.cellImageSpace,"C.ImageSpace");
+                ProcessUserSetting(setting.cellLight,"C.Light");
+                ProcessUserSetting(setting.cellLockList,"C.LockList");
+                ProcessUserSetting(setting.cellLocation,"C.Location");
+                ProcessUserSetting(setting.cellMiscFlags,"C.MiscFlags");
+                ProcessUserSetting(setting.cellMusic,"C.Music");
+                ProcessUserSetting(setting.cellName,"C.Name");
+                ProcessUserSetting(setting.cellOwner,"C.Owner");
+                ProcessUserSetting(setting.cellRecordFlags,"C.RecordFlags");
+                ProcessUserSetting(setting.cellRegions,"C.Regions");
+                ProcessUserSetting(setting.cellSkyLighting,"C.SkyLighting");
+                ProcessUserSetting(setting.cellWater,"C.Water");
+            }
+
+            // Process Bulk Settings
             ProcessUserSetting(UserSettings.settingsActors,"Actors.ACBS,Actors.AIData,Actors.AIPackages,Actors.AIPackagesForceAdd,Actors.CombatStyle" +
                 ",Actors.DeathItem,Actors.Factions,Actors.Perks.Add,Actors.Perks.Change,Actors.Perks.Remove,Actors.RecordFlags,Actors.Skeleton" + 
                 ",Actors.Spells,Actors.SpellsForceAdd,Actors.Stats,Actors.Voice,NPC.AIPackageOverrides,NPC.AttackRace,NPC.Class,NPC.CrimeFaction" +

@@ -4,7 +4,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.Strings;
+using Mutagen.Bethesda.Plugins.Cache;
 using Noggog;
 
 namespace Fusion
@@ -20,59 +20,76 @@ namespace Fusion
                 var modContext = state.LinkCache.ResolveAllContexts<IArmorAddon, IArmorAddonGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
-                // Get the base record
+                //==============================================================================================================
+                // Initial Settings
+                //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<IArmorAddon, IArmorAddonGetter>(workingContext.Record.FormKey).Last();
+                bool[] mapped = new bool[20];
 
                 //==============================================================================================================
-                // Graphics
+                // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Graphic").Contains(context.ModKey)))
+                foreach(var foundContext in modContext)
                 {
-                    if (Compare.NotEqual(foundContext.Record.WorldModel,originalObject.Record.WorldModel)
-                        || Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel))
+                    //==============================================================================================================
+                    // Graphics
+                    //==============================================================================================================
+                    if (Settings.TagList("Graphic").Contains(foundContext.ModKey) && !mapped[0])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.WorldModel,workingContext.Record.WorldModel)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.FirstPersonModel,workingContext.Record.FirstPersonModel)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.WorldModel,originalObject.Record.WorldModel)
+                            || Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.WorldModel,originalObject.Record.WorldModel)) 
-                                overrideObject.WorldModel = Utility.NewGender<Model>(foundContext.Record.WorldModel?.Male?.DeepCopy(), foundContext.Record.WorldModel?.Female?.DeepCopy());
-                            if (Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel)) 
-                                overrideObject.FirstPersonModel = Utility.NewGender<Model>(foundContext.Record.FirstPersonModel?.Male?.DeepCopy(), foundContext.Record.FirstPersonModel?.Female?.DeepCopy());
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[0] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.WorldModel,workingContext.Record.WorldModel)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.FirstPersonModel,workingContext.Record.FirstPersonModel)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.WorldModel,originalObject.Record.WorldModel)) 
+                                        overrideObject.WorldModel = Utility.NewGender<Model>(foundContext.Record.WorldModel?.Male?.DeepCopy(), foundContext.Record.WorldModel?.Female?.DeepCopy());
+                                    if (Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel)) 
+                                        overrideObject.FirstPersonModel = Utility.NewGender<Model>(foundContext.Record.FirstPersonModel?.Male?.DeepCopy(), foundContext.Record.FirstPersonModel?.Female?.DeepCopy());
+                                }
+                                mapped[0] = true;
+                            }
                         }
-                        break;
+                    }
+
+                    //==============================================================================================================
+                    // Sounds
+                    //==============================================================================================================
+                    if (Settings.TagList("Sounds").Contains(foundContext.ModKey) && !mapped[1])
+                    {
+                        if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
+                        {
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[1] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.FootstepSound,workingContext.Record.FootstepSound)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
+                                        overrideObject.FootstepSound.SetTo(foundContext.Record.FootstepSound);
+                                }
+                                mapped[1] = true;
+                            }
+                        }
                     }
                 }
-
-                //==============================================================================================================
-                // Sounds
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Sounds").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.FootstepSound,workingContext.Record.FootstepSound)) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
-                                overrideObject.FootstepSound.SetTo(foundContext.Record.FootstepSound);
-                        }
-                        break;
-                    }
-                }
-
+                
             }
         }
     }

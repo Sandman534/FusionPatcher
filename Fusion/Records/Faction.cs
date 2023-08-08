@@ -4,7 +4,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.Strings;
+using Mutagen.Bethesda.Plugins.Cache;
 using Noggog;
 
 namespace Fusion
@@ -20,69 +20,80 @@ namespace Fusion
                 var modContext = state.LinkCache.ResolveAllContexts<IFaction, IFactionGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
-                // Get the base record
+                //==============================================================================================================
+                // Initial Settings
+                //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<IFaction, IFactionGetter>(workingContext.Record.FormKey).Last();
+                bool[] mapped = new bool[20];
+                Relations NewRelation = new(workingContext.Record.Relations);
 
                 //==============================================================================================================
-                // Names
+                // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Names").Contains(context.ModKey)))
+                foreach(var foundContext in modContext)
                 {
-                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                    //==============================================================================================================
+                    // Names
+                    //==============================================================================================================
+                    if (Settings.TagList("Names").Contains(foundContext.ModKey) && !mapped[0])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[0] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
+                                }
+                                mapped[0] = true;
+                            }
                         }
-                        break;
                     }
+
+                    //==============================================================================================================
+                    // Relation Adds/Changes
+                    //==============================================================================================================
+                    if (Settings.TagList("Relations.Add").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Add(foundContext.Record.Relations);
+
+                    if (Settings.TagList("Relations.Change").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Change(foundContext.Record.Relations, originalObject.Record.Relations);
+
                 }
 
                 //==============================================================================================================
-                // Relations
+                // Reverse Mod Lookup (Removes)
                 //==============================================================================================================
-                if (Settings.HasTags("Relations.Add,Relations.Change,Relations.Remove"))
+                foreach(var foundContext in modContext.Reverse())
                 {
-                    Relations NewRelation = new(workingContext.Record.Relations);
-                    if (Settings.HasTags("Relations.Add", out var RelationsAdd))
-                    {
-                        var foundContext = modContext.Where(context => RelationsAdd.Contains(context.ModKey) && Compare.NotEqual(context.Record.Relations,originalObject.Record.Relations));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewRelation.Add(context.Record.Relations);
-                    }
-
-                    if (Settings.HasTags("Relations.Change", out var RelationsChange))
-                    {
-                        var foundContext = modContext.Where(context => RelationsChange.Contains(context.ModKey) && Compare.NotEqual(context.Record.Relations,originalObject.Record.Relations));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewRelation.Change(context.Record.Relations, originalObject.Record.Relations);
-                    }
-
-                    if (Settings.HasTags("Relations.Remove", out var RelationsRemove))
-                    {
-                        var foundContext = modContext.Where(context => RelationsRemove.Contains(context.ModKey) && Compare.NotEqual(context.Record.Relations,originalObject.Record.Relations));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewRelation.Remove(context.Record.Relations, originalObject.Record.Relations);
-                            
-                    }
-
-                    if (NewRelation.Modified) {
-                        var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Relations.SetTo(NewRelation.OverrideObject);
-                    }
+                    //==============================================================================================================
+                    // Relation Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("Relations.Remove").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Remove(foundContext.Record.Relations, originalObject.Record.Relations);
                 }
 
+                //==============================================================================================================
+                // Finalize
+                //==============================================================================================================
+                if (NewRelation.Modified)
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Relations.SetTo(NewRelation.OverrideObject);
+                }
+        
             }
         }
     }

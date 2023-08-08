@@ -515,12 +515,12 @@ public static class Compare
         return false;
     }
 
-    public static bool NotEqual(IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Record1, IFormLinkNullableGetter<ISkyrimMajorRecordGetter> Record2)
+    public static bool NotEqual(IFormLinkNullableGetter<ISkyrimMajorRecordGetter>? Record1, IFormLinkNullableGetter<ISkyrimMajorRecordGetter>? Record2)
     {
         // Null Test
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Record1.FormKey != Record2.FormKey)
+        if (Record1 != null && Record2 != null && Record1.FormKey != Record2.FormKey)
             return true;
 
         return false;
@@ -884,6 +884,7 @@ public class Relations
             foreach (var rec in WorkingRecord) 
                 OverrideObject.Add(rec.DeepCopy());        
     }
+    
     public void Add(IReadOnlyList<IRelationGetter>? FoundObject)
     {
         if (FoundObject != null && FoundObject.Count > 0)
@@ -1058,4 +1059,127 @@ public class Containers
                 }
             }
     }
+}
+
+public class Leveled
+{
+    public ExtendedList<LeveledItemEntry> OverrideItemObject {get; set;}
+    public ExtendedList<LeveledNpcEntry> OverrideNpcObject {get; set;}
+    public ExtendedList<LeveledSpellEntry> OverrideSpellObject {get; set;}
+    public bool Modified;
+
+    public Leveled(IReadOnlyList<ILeveledItemEntryGetter>? WorkingRecord)
+    {
+        OverrideItemObject = new();
+        OverrideNpcObject = new();
+        OverrideSpellObject = new();
+        Modified = false;
+
+        if (WorkingRecord != null)
+            foreach (var rec in WorkingRecord) 
+                OverrideItemObject.Add(rec.DeepCopy());        
+    }
+
+    public Leveled(IReadOnlyList<ILeveledNpcEntryGetter>? WorkingRecord)
+    {
+        OverrideItemObject = new();
+        OverrideNpcObject = new();
+        OverrideSpellObject = new();
+        Modified = false;
+
+        if (WorkingRecord != null)
+            foreach (var rec in WorkingRecord) 
+                OverrideNpcObject.Add(rec.DeepCopy());        
+    }
+
+    public Leveled(IReadOnlyList<ILeveledSpellEntryGetter>? WorkingRecord)
+    {
+        OverrideItemObject = new();
+        OverrideNpcObject = new();
+        OverrideSpellObject = new();
+        Modified = false;
+
+        if (WorkingRecord != null)
+            foreach (var rec in WorkingRecord) 
+                OverrideSpellObject.Add(rec.DeepCopy());        
+    }
+
+    public void Add(IReadOnlyList<ILeveledItemEntryGetter>? FoundObject)
+    {
+        if (FoundObject != null && FoundObject.Count > 0)
+            foreach (var rec in FoundObject)
+                if (rec.Data?.Reference != null && !OverrideItemObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    OverrideItemObject.Add(rec.DeepCopy());
+                    Modified = true;
+                }
+    }
+    
+    public void Remove(IReadOnlyList<ILeveledItemEntryGetter>? FoundObject, IReadOnlyList<ILeveledItemEntryGetter>? OriginalObject)
+    {
+        if (FoundObject != null && OriginalObject != null)
+            foreach (var rec in OriginalObject)
+                if (rec.Data?.Reference != null && !FoundObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    var oFoundRec = OverrideItemObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey);
+                    if (oFoundRec.Any())
+                    {
+                        OverrideItemObject.Remove(oFoundRec.First());
+                        Modified = true;
+                    }
+                }
+    }
+
+    public void Add(IReadOnlyList<ILeveledNpcEntryGetter>? FoundObject)
+    {
+        if (FoundObject != null && FoundObject.Count > 0)
+            foreach (var rec in FoundObject)
+                if (rec.Data?.Reference != null && !OverrideNpcObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    OverrideNpcObject.Add(rec.DeepCopy());
+                    Modified = true;
+                }
+    }
+    
+    public void Remove(IReadOnlyList<ILeveledNpcEntryGetter>? FoundObject, IReadOnlyList<ILeveledNpcEntryGetter>? OriginalObject)
+    {
+        if (FoundObject != null && OriginalObject != null)
+            foreach (var rec in OriginalObject)
+                if (rec.Data?.Reference != null && !FoundObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    var oFoundRec = OverrideNpcObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey);
+                    if (oFoundRec.Any())
+                    {
+                        OverrideNpcObject.Remove(oFoundRec.First());
+                        Modified = true;
+                    }
+                }
+    }
+
+    public void Add(IReadOnlyList<ILeveledSpellEntryGetter>? FoundObject)
+    {
+        if (FoundObject != null && FoundObject.Count > 0)
+            foreach (var rec in FoundObject)
+                if (rec.Data?.Reference != null && !OverrideSpellObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    OverrideSpellObject.Add(rec.DeepCopy());
+                    Modified = true;
+                }
+    }
+    
+    public void Remove(IReadOnlyList<ILeveledSpellEntryGetter>? FoundObject, IReadOnlyList<ILeveledSpellEntryGetter>? OriginalObject)
+    {
+        if (FoundObject != null && OriginalObject != null)
+            foreach (var rec in OriginalObject)
+                if (rec.Data?.Reference != null && !FoundObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey).Any())
+                {
+                    var oFoundRec = OverrideSpellObject.Where(x => x.Data?.Reference.FormKey == rec.Data.Reference.FormKey);
+                    if (oFoundRec.Any())
+                    {
+                        OverrideSpellObject.Remove(oFoundRec.First());
+                        Modified = true;
+                    }
+                }
+    }
+
 }

@@ -23,529 +23,567 @@ namespace Fusion
                 var modContext = state.LinkCache.ResolveAllContexts<INpc, INpcGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
-                // Get the base record
+                //==============================================================================================================
+                // Initial Settings
+                //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<INpc, INpcGetter>(workingContext.Record.FormKey).Last();
+                bool[] mapped = new bool[20];
+                Keywords NewKeywords = new(workingContext.Record.Keywords);
+                Packages NewPackages = new(workingContext.Record.Packages);
+                Factions NewFaction = new(workingContext.Record.Factions);
+                Containers NewContainer = new(workingContext.Record.Items);
+                Perks NewPerks = new(workingContext.Record.Perks);
+                Flags<Npc.SkyrimMajorRecordFlag> NewFlags = new(workingContext.Record.SkyrimMajorRecordFlags);
 
                 //==============================================================================================================
-                // ACBS
+                // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Actors.ACBS").Contains(context.ModKey)))
+                foreach(var foundContext in modContext)
                 {
-                    if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
+                    //==============================================================================================================
+                    // ACBS
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.ACBS").Contains(foundContext.ModKey) && !mapped[0])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Configuration,workingContext.Record.Configuration)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
-                                overrideObject.Configuration.DeepCopyIn(foundContext.Record.Configuration);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[0] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Configuration,workingContext.Record.Configuration)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
+                                        overrideObject.Configuration.DeepCopyIn(foundContext.Record.Configuration);
+                                }
+                                mapped[0] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // AI Data
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Actors.AIData").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
+                    //==============================================================================================================
+                    // AI Data
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.AIData").Contains(foundContext.ModKey) && !mapped[1])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.AIData,workingContext.Record.AIData)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
-                                overrideObject.AIData.DeepCopyIn(foundContext.Record.AIData);
-                        }
-                        break;
-                    }
-                }
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[1] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.AIData,workingContext.Record.AIData)) Change = true;
 
-                //==============================================================================================================
-                // AI Packages
-                //==============================================================================================================
-                if (Settings.HasTags("Actors.AIPackages,Actors.AIPackagesForceAdd"))
-                {
-                    Packages NewPackages = new(workingContext.Record.Packages);
-                    if (Settings.HasTags("Actors.AIPackages", out var AIPackages))
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
+                                        overrideObject.AIData.DeepCopyIn(foundContext.Record.AIData);
+                                }
+                                mapped[1] = true;
+                            }
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // AI Package Overrride
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.AIPackageOverrides").Contains(foundContext.ModKey) && !mapped[2])
                     {
-                        // Get the last overriding context of our element
-                        var foundContext = modContext.Where(context => AIPackages.Contains(context.ModKey) && Compare.NotEqual(context.Record.Packages,originalObject.Record.Packages));
-                        if (foundContext.Any())
+                        if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList)
+                            || Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList)
+                            || Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList)
+                            || Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
                         {
-                            foreach (var context in foundContext)
-                                NewPackages.Add(context.Record.Packages, originalObject.Record.Packages);
-                            foreach (var context in foundContext.Reverse())
-                                NewPackages.Remove(context.Record.Packages, originalObject.Record.Packages);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[2] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,workingContext.Record.SpectatorOverridePackageList)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,workingContext.Record.ObserveDeadBodyOverridePackageList)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,workingContext.Record.GuardWarnOverridePackageList)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.CombatOverridePackageList,workingContext.Record.CombatOverridePackageList)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList))
+                                        overrideObject.SpectatorOverridePackageList.SetTo(foundContext.Record.SpectatorOverridePackageList);
+                                    if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList))
+                                        overrideObject.ObserveDeadBodyOverridePackageList.SetTo(foundContext.Record.ObserveDeadBodyOverridePackageList);
+                                    if (Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList))
+                                        overrideObject.GuardWarnOverridePackageList.SetTo(foundContext.Record.GuardWarnOverridePackageList);
+                                    if (Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
+                                        overrideObject.CombatOverridePackageList.SetTo(foundContext.Record.CombatOverridePackageList);
+                                }
+                                mapped[2] = true;
+                            }
                         }
                     }
 
-                    if (Settings.HasTags("Actors.AIPackagesForceAdd", out var AIPackagesAdd))
+                    //==============================================================================================================
+                    // Attack Race
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.AttackRace").Contains(foundContext.ModKey) && !mapped[3])
                     {
-                        // Get the last overriding context of our element
-                        var foundContext = modContext.Where(context => AIPackagesAdd.Contains(context.ModKey) && Compare.NotEqual(context.Record.Packages,originalObject.Record.Packages));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewPackages.Add(context.Record.Packages, originalObject.Record.Packages);
-                    }
-
-                    if (NewPackages.Modified) {
-                        var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Packages.SetTo(NewPackages.OverrideObject);
-                    }
-                }
-
-                //==============================================================================================================
-                // AI Package Overrride
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.AIPackageOverrides").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList)
-                        || Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList)
-                        || Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList)
-                        || Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,workingContext.Record.SpectatorOverridePackageList)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,workingContext.Record.ObserveDeadBodyOverridePackageList)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,workingContext.Record.GuardWarnOverridePackageList)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.CombatOverridePackageList,workingContext.Record.CombatOverridePackageList)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList))
-                                overrideObject.SpectatorOverridePackageList.SetTo(foundContext.Record.SpectatorOverridePackageList);
-                            if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList))
-                                overrideObject.ObserveDeadBodyOverridePackageList.SetTo(foundContext.Record.ObserveDeadBodyOverridePackageList);
-                            if (Compare.NotEqual(foundContext.Record.GuardWarnOverridePackageList,originalObject.Record.GuardWarnOverridePackageList))
-                                overrideObject.GuardWarnOverridePackageList.SetTo(foundContext.Record.GuardWarnOverridePackageList);
-                            if (Compare.NotEqual(foundContext.Record.CombatOverridePackageList,originalObject.Record.CombatOverridePackageList))
-                                overrideObject.CombatOverridePackageList.SetTo(foundContext.Record.CombatOverridePackageList);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[3] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.AttackRace,workingContext.Record.AttackRace)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
+                                        overrideObject.AttackRace.SetTo(foundContext.Record.AttackRace);
+                                }
+                                mapped[3]= true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Attack Race
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.AttackRace").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
+                    //==============================================================================================================
+                    // Class
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.Class").Contains(foundContext.ModKey) && !mapped[4])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.AttackRace,workingContext.Record.AttackRace)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
-                                overrideObject.AttackRace.SetTo(foundContext.Record.AttackRace);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[4] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Class,workingContext.Record.Class)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
+                                        overrideObject.Class.SetTo(foundContext.Record.Class);
+                                }
+                                mapped[4] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Class
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.Class").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
+                    //==============================================================================================================
+                    // Combat Style
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.CombatStyle").Contains(foundContext.ModKey) && !mapped[5])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Class,workingContext.Record.Class)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
-                                overrideObject.Class.SetTo(foundContext.Record.Class);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) 
+                                mapped[5] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.CombatStyle,workingContext.Record.CombatStyle)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
+                                        overrideObject.CombatStyle.SetTo(foundContext.Record.CombatStyle);
+                                }
+                                mapped[5] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Combat Style
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Actors.CombatStyle").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
+                    //==============================================================================================================
+                    // Crime Faction
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.CrimeFaction").Contains(foundContext.ModKey) && !mapped[6])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.CombatStyle,workingContext.Record.CombatStyle)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
-                                overrideObject.CombatStyle.SetTo(foundContext.Record.CombatStyle);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[6] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.CrimeFaction,workingContext.Record.CrimeFaction)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
+                                        overrideObject.CrimeFaction.SetTo(foundContext.Record.CrimeFaction);
+                                }
+                                mapped[6] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Crime Faction
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.CrimeFaction").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
+                    //==============================================================================================================
+                    // Death Items
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.DeathItem").Contains(foundContext.ModKey) && !mapped[7])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.CrimeFaction,workingContext.Record.CrimeFaction)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
-                                overrideObject.CrimeFaction.SetTo(foundContext.Record.CrimeFaction);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[7] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.DeathItem,workingContext.Record.DeathItem)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
+                                        overrideObject.DeathItem.SetTo(foundContext.Record.DeathItem);
+                                }
+                                mapped[7] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Death Items
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Actors.DeathItem").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
+                    //==============================================================================================================
+                    // Default Outfit
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.DefaultOutfit").Contains(foundContext.ModKey) && !mapped[8])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.DeathItem,workingContext.Record.DeathItem)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit)
+                            || Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
-                                overrideObject.DeathItem.SetTo(foundContext.Record.DeathItem);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[8] =  true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.DefaultOutfit,workingContext.Record.DefaultOutfit)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.Template,workingContext.Record.Template)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit))
+                                        overrideObject.DefaultOutfit.SetTo(foundContext.Record.DefaultOutfit);
+                                    if (Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
+                                        overrideObject.Template.SetTo(foundContext.Record.Template);
+                                }
+                                mapped[8] = true;
+                            }
                         }
-                        break;
                     }
-                }
 
-                //==============================================================================================================
-                // Default Outfit
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.DefaultOutfit").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit)
-                        || Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
+                    //==============================================================================================================
+                    // Names
+                    //==============================================================================================================
+                    if (Settings.TagList("Names").Contains(foundContext.ModKey) && !mapped[9])
                     {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.DefaultOutfit,workingContext.Record.DefaultOutfit)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.Template,workingContext.Record.Template)) Change = true;
-
-                        // Copy Records
-                        if (Change)
+                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit))
-                                overrideObject.DefaultOutfit.SetTo(foundContext.Record.DefaultOutfit);
-                            if (Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
-                                overrideObject.Template.SetTo(foundContext.Record.Template);
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) 
+                                mapped[9] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
+                                }
+                                mapped[9] = true;
+                            }
                         }
-                        break;
                     }
+
+                    //==============================================================================================================
+                    // NPC Face Import
+                    //==============================================================================================================
+                    if (Settings.TagList("NpcFacesForceFullImport").Contains(foundContext.ModKey) && !mapped[10])
+                    {
+                        if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts)
+                            || Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor)
+                            || Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture)
+                            || Compare.NotEqual(foundContext.Record.TextureLighting,originalObject.Record.TextureLighting)
+                            || Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph)
+                            || Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts)
+                            || Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers)
+                            || Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
+                        {
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[10] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.HeadParts,workingContext.Record.HeadParts)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.HairColor,workingContext.Record.HairColor)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.HeadTexture,workingContext.Record.HeadTexture)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.TextureLighting,workingContext.Record.TextureLighting)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.FaceMorph,workingContext.Record.FaceMorph)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.FaceParts,workingContext.Record.FaceParts)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.TintLayers,workingContext.Record.TintLayers)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.Weight,workingContext.Record.Weight)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts))
+                                    {
+                                        overrideObject.HeadParts.Clear();
+                                        overrideObject.HeadParts.AddRange(foundContext.Record.HeadParts); 
+                                    }
+                                    if (Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor))
+                                        overrideObject.HairColor.SetTo(foundContext.Record.HairColor);
+                                    if (Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture))
+                                        overrideObject.HeadTexture.SetTo(foundContext.Record.HeadTexture);
+                                    if (Compare.NotEqual(foundContext.Record.TextureLighting,originalObject.Record.TextureLighting))
+                                        overrideObject.TextureLighting = foundContext.Record.TextureLighting;
+                                    if (Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
+                                        overrideObject.Weight = foundContext.Record.Weight;
+                                    if (Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph))
+                                        overrideObject.FaceMorph = foundContext.Record.FaceMorph?.DeepCopy();
+                                    if (Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts))
+                                        overrideObject.FaceParts = foundContext.Record.FaceParts?.DeepCopy();
+                                    if(Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers))
+                                    {
+                                        overrideObject.TintLayers.Clear();
+                                        foreach (var tint in foundContext.Record.TintLayers)
+                                            overrideObject.TintLayers.Add(tint.DeepCopy()); 
+                                    }
+                                }
+                                mapped[10] = true;
+                            }
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // Race
+                    //==============================================================================================================
+                    if (Settings.TagList("NPC.Race").Contains(foundContext.ModKey) && !mapped[11])
+                    {
+                        if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
+                        {
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[11] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Race,workingContext.Record.Race)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
+                                        overrideObject.Race.SetTo(foundContext.Record.Race);
+                                }
+                                mapped[11] = true;
+                            }
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // Voice
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.Voice").Contains(foundContext.ModKey) && !mapped[12])
+                    {
+                        if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
+                        {
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[12] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.Voice,workingContext.Record.Voice)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
+                                        overrideObject.Voice.SetTo(foundContext.Record.Voice);
+                                }
+                                mapped[12] = true;
+                            }
+                        }
+                    }
+                    
+                    //==============================================================================================================
+                    // AI Packages Adds
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.AIPackages").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Packages,originalObject.Record.Packages))
+                            NewPackages.Add(foundContext.Record.Packages, originalObject.Record.Packages);
+
+                    //==============================================================================================================
+                    // Faction Adds
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.Factions").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Factions,originalObject.Record.Factions))
+                            NewFaction.Add(foundContext.Record.Factions);
+
+                    //==============================================================================================================
+                    // Inventory Adds/Changes
+                    //==============================================================================================================
+                    if (Settings.TagList("Invent.Add").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Items,originalObject.Record.Items))
+                            NewContainer.Add(foundContext.Record.Items);
+
+                    if (Settings.TagList("Invent.Change").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Items,originalObject.Record.Items))
+                            NewContainer.Change(foundContext.Record.Items, originalObject.Record.Items);
+
+                    //==============================================================================================================
+                    // Keyword Adds
+                    //==============================================================================================================
+                    if (Settings.TagList("Keywords").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Keywords,originalObject.Record.Keywords))
+                            NewKeywords.Add(foundContext.Record.Keywords, originalObject.Record.Keywords);
+
+                    //==============================================================================================================
+                    // Record Flag Adds
+                    //==============================================================================================================
+                    if (Settings.TagList("C.RecordFlags").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.SkyrimMajorRecordFlags,originalObject.Record.SkyrimMajorRecordFlags))
+                            NewFlags.Add(foundContext.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
+
+                    //==============================================================================================================
+                    // Perk Adds/Changes
+                    //==============================================================================================================
+                    if (Settings.TagList("Perks.Add").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Perks,originalObject.Record.Perks))
+                            NewPerks.Add(foundContext.Record.Perks);
+
+                    if (Settings.TagList("Perks.Change").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Perks,originalObject.Record.Perks))
+                            NewPerks.Change(foundContext.Record.Perks, originalObject.Record.Perks); 
+
                 }
 
                 //==============================================================================================================
-                // Factions
+                // Reverse Mod Lookup (Removes)
                 //==============================================================================================================
-                if (Settings.HasTags("Actors.Factions", out var Factions))
+                foreach(var foundContext in modContext.Reverse())
                 {
-                    // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => Factions.Contains(context.ModKey) && Compare.NotEqual(context.Record.Factions,originalObject.Record.Factions));
-                    if (foundContext.Any())
-                    {
-                        Factions NewFaction = new(workingContext.Record.Factions);
-                        foreach (var context in foundContext)
-                            NewFaction.Add(context.Record.Factions);
-                        foreach (var context in foundContext.Reverse())
-                            NewFaction.Remove(context.Record.Factions, originalObject.Record.Factions);    
-                        if (NewFaction.Modified) {
-                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Factions.SetTo(NewFaction.OverrideObject);
-                        }
-                    }
+                    //==============================================================================================================
+                    // AI Packages Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.AIPackages").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Packages,originalObject.Record.Packages))
+                            NewPackages.Remove(foundContext.Record.Packages, originalObject.Record.Packages);
+
+                    //==============================================================================================================
+                    // Faction Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("Actors.Factions").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Factions,originalObject.Record.Factions))
+                            NewFaction.Remove(foundContext.Record.Factions, originalObject.Record.Factions);
+
+                    //==============================================================================================================
+                    // Inventory Adds/Changes
+                    //==============================================================================================================
+                    if (Settings.TagList("Invent.Remove").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Items,originalObject.Record.Items))
+                            NewContainer.Remove(foundContext.Record.Items, originalObject.Record.Items);
+
+                    //==============================================================================================================
+                    // Keyword Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("Keywords").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Keywords,originalObject.Record.Keywords))
+                            NewKeywords.Remove(foundContext.Record.Keywords, originalObject.Record.Keywords);
+
+                    //==============================================================================================================
+                    // Record Flag Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("C.MiscFlags").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.SkyrimMajorRecordFlags,originalObject.Record.SkyrimMajorRecordFlags))
+                            NewFlags.Remove(foundContext.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
+
+                    //==============================================================================================================
+                    // Perk Removes
+                    //==============================================================================================================
+                    if (Settings.TagList("Perks.Remove").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Perks,originalObject.Record.Perks))
+                            NewPerks.Remove(foundContext.Record.Perks, originalObject.Record.Perks);
                 }
 
                 //==============================================================================================================
-                // Inventory
+                // AI Package Force Adds
                 //==============================================================================================================
-                if (Settings.HasTags("Invent.Add,Invent.Change,Invent.Remove"))
+                foreach(var foundContext in modContext)
+                    if (Settings.TagList("Actors.AIPackagesForceAdd").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Packages,originalObject.Record.Packages))
+                            NewPackages.Add(foundContext.Record.Packages, originalObject.Record.Packages);
+
+                //==============================================================================================================
+                // Finalize
+                //==============================================================================================================
+                if (NewPackages.Modified)
                 {
-                    Containers NewContainer = new(workingContext.Record.Items);
-                    if (Settings.HasTags("Invent.Add", out var InventAdd))
-                    {
-                        var InventAddContext = modContext.Where(context => InventAdd.Contains(context.ModKey) && Compare.NotEqual(context.Record.Items,originalObject.Record.Items));
-                        if (InventAddContext.Any())
-                            foreach (var context in InventAddContext)
-                                NewContainer.Add(context.Record.Items);
-                    }
-
-                    if (Settings.HasTags("Invent.Change", out var InventChange))
-                    {
-                        // Get the last overriding context of our element
-                        var foundContext = modContext.Where(context => InventChange.Contains(context.ModKey) && Compare.NotEqual(context.Record.Items,originalObject.Record.Items));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext.Reverse())
-                                NewContainer.Change(context.Record.Items, originalObject.Record.Items);
-                    }
-
-                    if (Settings.HasTags("Invent.Remove", out var InventRemove))
-                    {
-                        var foundContext = modContext.Where(context => InventRemove.Contains(context.ModKey) && Compare.NotEqual(context.Record.Items,originalObject.Record.Items));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext.Reverse())
-                                NewContainer.Remove(context.Record.Items, originalObject.Record.Items);
-                    }
-
-                    if (NewContainer.Modified) {
-                        var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Items = NewContainer.OverrideObject;
-                    }
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Packages.SetTo(NewPackages.OverrideObject);
+                }
+                if (NewFaction.Modified)
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Factions.SetTo(NewFaction.OverrideObject);
+                }
+                if (NewContainer.Modified) 
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Items = NewContainer.OverrideObject;
+                }
+                if (NewKeywords.Modified) 
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Keywords = NewKeywords.OverrideObject;
+                }
+                if (NewFlags.Modified)
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.SkyrimMajorRecordFlags = NewFlags.OverrideObject;
+                }
+                if (NewPerks.Modified) 
+                {
+                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Perks = NewPerks.OverrideObject;
                 }
                 
-                //==============================================================================================================
-                // Keywords
-                //==============================================================================================================
-                if (Settings.HasTags("Keywords", out var FoundKeys))
-                {
-                    // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => FoundKeys.Contains(context.ModKey) && Compare.NotEqual(context.Record.Keywords,originalObject.Record.Keywords));
-                    if (foundContext.Any())
-                    {
-                        Keywords NewKeywords = new(workingContext.Record.Keywords);
-                        foreach (var context in foundContext)
-                            NewKeywords.Add(context.Record.Keywords, originalObject.Record.Keywords);
-                        foreach (var context in foundContext.Reverse())
-                            NewKeywords.Remove(context.Record.Keywords, originalObject.Record.Keywords);
-                        if (NewKeywords.Modified) {
-                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.Keywords = NewKeywords.OverrideObject;
-                        }
-                    }
-                }
-
-                //==============================================================================================================
-                // Names
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Names").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                overrideObject.Name = Utility.NewString(foundContext.Record.Name);
-                        }
-                        break;
-                    }
-                }
-
-                //==============================================================================================================
-                // NPC Face Import
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NpcFacesForceFullImport").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts)
-                        || Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor)
-                        || Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture)
-                        || Compare.NotEqual(foundContext.Record.TextureLighting,originalObject.Record.TextureLighting)
-                        || Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph)
-                        || Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts)
-                        || Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers)
-                        || Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.HeadParts,workingContext.Record.HeadParts)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.HairColor,workingContext.Record.HairColor)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.HeadTexture,workingContext.Record.HeadTexture)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.TextureLighting,workingContext.Record.TextureLighting)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.FaceMorph,workingContext.Record.FaceMorph)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.FaceParts,workingContext.Record.FaceParts)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.TintLayers,workingContext.Record.TintLayers)) Change = true;
-                        if (Compare.NotEqual(foundContext.Record.Weight,workingContext.Record.Weight)) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts))
-                            {
-                                overrideObject.HeadParts.Clear();
-                                overrideObject.HeadParts.AddRange(foundContext.Record.HeadParts); 
-                            }
-                            if (Compare.NotEqual(foundContext.Record.HairColor,originalObject.Record.HairColor))
-                                overrideObject.HairColor.SetTo(foundContext.Record.HairColor);
-                            if (Compare.NotEqual(foundContext.Record.HeadTexture,originalObject.Record.HeadTexture))
-                                overrideObject.HeadTexture.SetTo(foundContext.Record.HeadTexture);
-                            if (Compare.NotEqual(foundContext.Record.TextureLighting,originalObject.Record.TextureLighting))
-                                overrideObject.TextureLighting = foundContext.Record.TextureLighting;
-                            if (Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
-                                overrideObject.Weight = foundContext.Record.Weight;
-                            if (Compare.NotEqual(foundContext.Record.FaceMorph,originalObject.Record.FaceMorph))
-                                overrideObject.FaceMorph = foundContext.Record.FaceMorph?.DeepCopy();
-                            if (Compare.NotEqual(foundContext.Record.FaceParts,originalObject.Record.FaceParts))
-                                overrideObject.FaceParts = foundContext.Record.FaceParts?.DeepCopy();
-                            if(Compare.NotEqual(foundContext.Record.TintLayers,originalObject.Record.TintLayers))
-                            {
-                                overrideObject.TintLayers.Clear();
-                                foreach (var tint in foundContext.Record.TintLayers)
-                                    overrideObject.TintLayers.Add(tint.DeepCopy()); 
-                            }
-                        }
-                        break;
-                    }
-                }
-
-                //==============================================================================================================
-                // Perks
-                //==============================================================================================================
-                if (Settings.HasTags("Perks.Add,Perks.Remove,Perks.Change"))
-                {
-                    Perks NewPerks = new(workingContext.Record.Perks);
-                    if (Settings.HasTags("Perks.Add", out var PerksAdd))
-                    {
-                        var foundContext = modContext.Where(context => PerksAdd.Contains(context.ModKey) && Compare.NotEqual(context.Record.Perks,originalObject.Record.Perks));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewPerks.Add(context.Record.Perks);
-                    }
-
-                    if (Settings.HasTags("Perks.Change", out var PerksChange))
-                    {
-                        var foundContext = modContext.Where(context => PerksChange.Contains(context.ModKey) && Compare.NotEqual(context.Record.Perks,originalObject.Record.Perks));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewPerks.Change(context.Record.Perks, originalObject.Record.Perks);
-                    }
-
-                    if (Settings.HasTags("Perks.Remove", out var PerksRemove))
-                    {
-                        var foundContext = modContext.Where(context => PerksRemove.Contains(context.ModKey) && Compare.NotEqual(context.Record.Perks,originalObject.Record.Perks));
-                        if (foundContext.Any())
-                            foreach (var context in foundContext)
-                                NewPerks.Remove(context.Record.Perks, originalObject.Record.Perks);
-                    }
-
-                    if (NewPerks.Modified) {
-                        var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                        addedRecord.Perks = NewPerks.OverrideObject;
-                    }
-                }
-
-                //==============================================================================================================
-                // Race
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("NPC.Race").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Race,workingContext.Record.Race)) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
-                                overrideObject.Race.SetTo(foundContext.Record.Race);
-                        }
-                        break;
-                    }
-                }
-
-                //==============================================================================================================
-                // Record Flags
-                //==============================================================================================================
-                if (Settings.HasTags("Actors.RecordFlags", out var RecordFlags))
-                {
-                    // Get the last overriding context of our element
-                    var foundContext = modContext.Where(context => RecordFlags.Contains(context.ModKey) && Compare.NotEqual(context.Record.SkyrimMajorRecordFlags,originalObject.Record.SkyrimMajorRecordFlags));
-                    if (foundContext.Any())
-                    {
-                        Flags<Npc.SkyrimMajorRecordFlag> NewFlags = new(workingContext.Record.SkyrimMajorRecordFlags);
-                        foreach (var context in foundContext)
-                            NewFlags.Add(context.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
-                        foreach (var context in foundContext.Reverse())
-                            NewFlags.Remove(context.Record.SkyrimMajorRecordFlags, originalObject.Record.SkyrimMajorRecordFlags);
-                        if (NewFlags.Modified) {
-                            var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            addedRecord.SkyrimMajorRecordFlags = NewFlags.OverrideObject;
-                        }
-                    }
-                }
-
-                //==============================================================================================================
-                // Voice
-                //==============================================================================================================
-                foreach(var foundContext in modContext.Where(context => Settings.TagList("Actors.Voice").Contains(context.ModKey)))
-                {
-                    if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
-                    {
-                        // Checks
-                        bool Change = false;
-                        if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) break;
-                        if (Compare.NotEqual(foundContext.Record.Voice,workingContext.Record.Voice)) Change = true;
-
-                        // Copy Records
-                        if (Change)
-                        {
-                            var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                            if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
-                                overrideObject.Voice.SetTo(foundContext.Record.Voice);
-                        }
-                        break;
-                    }
-                }
-
             }
         }
     }
