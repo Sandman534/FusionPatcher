@@ -17,6 +17,9 @@ namespace Fusion
         [SettingName("Use Bash Tags from LOOT")]
         public bool BashTagsLoot = true;
 
+        [SettingName("Loot Master List Location")]
+        public string BashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\Skyrim Special Edition\\masterlist.yaml";
+
         [SettingName("No Merge")]
         public List<ModKey> settingsNoMerge = new();
 
@@ -27,7 +30,7 @@ namespace Fusion
         public List<ModKey> settingsCells = new();
 
         [SettingName("Cell Tags")]
-        public List<CellSettings> granularCells = new() { new CellSettings()};
+        public List<CellSettings> granularCells = new() { new CellSettings() };
 
         [SettingName("Destuctibles")]
         public List<ModKey> settingsDestructibles = new();
@@ -55,6 +58,12 @@ namespace Fusion
 
         //[SettingName("Race")]
         //public List<ModKey> settingsRace = new List<ModKey>();
+
+        [SettingName("References")]
+        public List<ModKey> settingsRefs = new();
+
+        [SettingName("Reference Tags")]
+        public List<RefSettings> granularRefs = new() { new RefSettings() };
 
         [SettingName("Relations")]
         public List<ModKey> settingsRelations = new();
@@ -121,6 +130,16 @@ namespace Fusion
         public List<ModKey> cellSkyLighting = new();
         [SettingName("C.Water")]
         public List<ModKey> cellWater = new();
+    }
+
+    public class RefSettings
+    {
+        [SettingName("F.Base")]
+        public List<ModKey> refBase = new();
+        [SettingName("F.EnableParent")]
+        public List<ModKey> refEnableParent = new();
+        [SettingName("F.LocationReference")]
+        public List<ModKey> refLocationReference = new();
     }
 
     public class LootTag 
@@ -275,14 +294,13 @@ namespace Fusion
             return FixedTagList;
         }
 
-        private void ProcessLOOTMaster()
+        private void ProcessLOOTMaster(string TagLocation)
         {
             // Get LOOT AppData Folder
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\Skyrim Special Edition\\masterlist.yaml";
-            if (!File.Exists(path)) return;
+            if (!File.Exists(TagLocation)) return;
 
             // Process the YAML to JSON for easier serializaiton
-            using StreamReader reader = File.OpenText(path);
+            using StreamReader reader = File.OpenText(TagLocation);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(new MergingParser(new Parser(reader)));
             var serializer = new SerializerBuilder().JsonCompatible().Build();
@@ -307,7 +325,7 @@ namespace Fusion
         {
             // Process LOOT Master List
             if (UserSettings.BashTagsLoot)
-                ProcessLOOTMaster();
+                ProcessLOOTMaster(UserSettings.BashTagsLocation);
 
             // Process Bash Tags
             foreach(var mod in state.LoadOrder.ListedOrder)
@@ -379,6 +397,14 @@ namespace Fusion
                 ProcessUserSetting(setting.cellWater,"C.Water");
             }
 
+            // Process Ref Settings
+            foreach (var setting in UserSettings.granularRefs)
+            {
+                ProcessUserSetting(setting.refBase, "F.Base");
+                ProcessUserSetting(setting.refEnableParent, "F.EnableParent");
+                ProcessUserSetting(setting.refLocationReference, "F.LocationReference");
+            }
+
             // Process Bulk Settings
             ProcessUserSetting(UserSettings.settingsActors,"Actors.ACBS,Actors.AIData,Actors.AIPackages,Actors.AIPackagesForceAdd,Actors.CombatStyle" +
                 ",Actors.DeathItem,Actors.Factions,Actors.Perks.Add,Actors.Perks.Change,Actors.Perks.Remove,Actors.RecordFlags,Actors.Skeleton" + 
@@ -396,6 +422,7 @@ namespace Fusion
             // ProcessUserSetting(UserSettings.settingsOutfits,"Outfits.Add,Outfits.Remove");
             // ProcessUserSetting(UserSettings.settingsRace,"R.AddSpells,R.Body-F,R.Body-M,R.Body-Size-F,R.Body-Size-M,R.ChangeSpells,R.Description" +
             //     ",R.Ears,R.Eyes,R.Hair,R.Head,R.Mouth,R.Skills,R.Teeth,R.Voice-F,R.Voice-M");
+            ProcessUserSetting(UserSettings.settingsRefs, "F.Base,F.EnableParent,F.LocationReference");
             ProcessUserSetting(UserSettings.settingsRelations,"R.Relations.Add,R.Relations.Change,R.Relations.Remove,Relations.Add,Relations.Change,Relations.Remove");
             ProcessUserSetting(UserSettings.settingsScripts,"Scripts");
             ProcessUserSetting(UserSettings.settingsSounds,"Sound");

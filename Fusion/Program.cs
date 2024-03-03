@@ -58,6 +58,9 @@ namespace Fusion
             Console.WriteLine("Processing Ingestibles");
             WeaponPatcher.Patch(state, NewSettings);
 
+            Console.WriteLine("Processing Ingredients");
+            IngredientPatcher.Patch(state, NewSettings);
+
             Console.WriteLine("Processing Leveled Items");
             LeveledItemPatcher.Patch(state, NewSettings);
 
@@ -76,11 +79,17 @@ namespace Fusion
             Console.WriteLine("Processing Perks");
             PerkPatcher.Patch(state, NewSettings);
 
+            Console.WriteLine("Processing Placed NPCs");
+            PlacedNPCPatcher.Patch(state, NewSettings);
+
             Console.WriteLine("Processing Quests");
             QuestPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Scrolls");
             ScrollPatcher.Patch(state, NewSettings);
+
+            Console.WriteLine("Processing Soul Gems");
+            SoulGemPatcher.Patch(state, NewSettings);
 
             Console.WriteLine("Processing Weapons");
             WeaponPatcher.Patch(state, NewSettings);

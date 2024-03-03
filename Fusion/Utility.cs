@@ -1,4 +1,4 @@
-﻿using Mutagen.Bethesda;
+using Mutagen.Bethesda;
 using Mutagen.Bethesda.Strings;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -133,6 +133,19 @@ public static class Compare
             || Record1?.TemplateFlags != Record2?.TemplateFlags
             || Record1?.HealthOffset != Record2?.HealthOffset
             || Record1?.BleedoutOverride != Record2?.BleedoutOverride)
+            return true;
+
+        // Record Flags
+        return NotEqual(Record1?.Flags, Record2?.Flags);
+    }
+
+    public static bool NotEqual(IEnableParentGetter? Record1, IEnableParentGetter? Record2)
+    {
+        // Null Test
+        if (NullTest(Record1, Record2, out bool Result)) return Result;
+
+        // Values
+        if (Record1?.Reference != Record2?.Reference)
             return true;
 
         // Record Flags
