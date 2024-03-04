@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             HashSet<ModKey> workingModList = Settings.GetModList("C.Acoustic,C.Climate,C.Encounter,C.ImageSpace,C.Light,C.LockList,C.Location,C.MiscFlags" +
-                ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.Water");
+                ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.SkyLighting,C.Water");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Cell().WinningContextOverrides(state.LinkCache))
             {
                 // Skip record if its not in one of our overwrite mods
@@ -259,7 +259,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Name
                     //==============================================================================================================
-                    if (Settings.TagList("C.Names").Contains(foundContext.ModKey) && !mapped[8])
+                    if (Settings.TagList("C.Name").Contains(foundContext.ModKey) && !mapped[8])
                     {
                         if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
@@ -310,9 +310,36 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
+                    // Sky Lighting
+                    //==============================================================================================================
+                    if (Settings.TagList("C.SkyLighting").Contains(foundContext.ModKey) && !mapped[10])
+                    {
+                        if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, originalObject.Record.SkyAndWeatherFromRegion))
+                        {
+                            // Checks
+                            bool Change = false;
+                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
+                                mapped[9] = true;
+                            else
+                            {
+                                if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, workingContext.Record.SkyAndWeatherFromRegion)) Change = true;
+
+                                // Copy Records
+                                if (Change)
+                                {
+                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, originalObject.Record.SkyAndWeatherFromRegion))
+                                        overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
+                                }
+                                mapped[10] = true;
+                            }
+                        }
+                    }
+
+                    //==============================================================================================================
                     // Water
                     //==============================================================================================================
-                    if (Settings.TagList("C.Water").Contains(foundContext.ModKey) && !mapped[10])
+                    if (Settings.TagList("C.Water").Contains(foundContext.ModKey) && !mapped[11])
                     {
                         if (Compare.NotEqual(foundContext.Record.Water,originalObject.Record.Water)
                             || Compare.NotEqual(foundContext.Record.WaterHeight,originalObject.Record.WaterHeight)
@@ -343,7 +370,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.WaterEnvironmentMap,originalObject.Record.WaterEnvironmentMap))
                                         overrideObject.WaterEnvironmentMap = foundContext.Record.WaterEnvironmentMap;
                                 }
-                                mapped[10] = true;
+                                mapped[11] = true;
                             }
                         }
                     }
