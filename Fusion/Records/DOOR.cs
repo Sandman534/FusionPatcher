@@ -168,6 +168,7 @@ namespace Fusion
                                         overrideObject.CloseSound.SetTo(foundContext.Record.CloseSound);
                                     if (Compare.NotEqual(foundContext.Record.LoopSound, originalObject.Record.LoopSound))
                                         overrideObject.LoopSound.SetTo(foundContext.Record.LoopSound);
+                                }
                                 mapped.SetMapped();
                             }
                         }
