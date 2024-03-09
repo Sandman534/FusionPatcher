@@ -9,10 +9,11 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class CellPatcher
+    internal class CELL
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
+            Console.WriteLine("Processing Cell");
             HashSet<ModKey> workingModList = Settings.GetModList("C.Acoustic,C.Climate,C.Encounter,C.ImageSpace,C.Light,C.LockList,C.Location,C.MiscFlags" +
                 ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.SkyLighting,C.Water");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Cell().WinningContextOverrides(state.LinkCache))
@@ -25,7 +26,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<ICell, ICellGetter>(workingContext.Record.FormKey).Last();
-                bool[] mapped = new bool[20];
+                MappedTags mapped = new MappedTags();
                 Flags<Cell.Flag> NewFlags = new(workingContext.Record.Flags);
                 Flags<Cell.MajorFlag> NewMajorFlags = new(workingContext.Record.MajorFlags);
                 Regions NewRegions = new(workingContext.Record.Regions);
@@ -38,14 +39,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Acoustic
                     //==============================================================================================================
-                    if (Settings.TagList("C.Acoustic").Contains(foundContext.ModKey) && !mapped[0]) 
+                    if (mapped.NotMapped("C.Acoustic") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.AcousticSpace,originalObject.Record.AcousticSpace))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.AcousticSpace,workingContext.Record.AcousticSpace)) Change = true;
@@ -57,7 +58,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.AcousticSpace,originalObject.Record.AcousticSpace))
                                         overrideObject.AcousticSpace.SetTo(foundContext.Record.AcousticSpace);
                                 }
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -65,14 +66,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Climate
                     //==============================================================================================================
-                    if (Settings.TagList("C.Climate").Contains(foundContext.ModKey) && !mapped[1])
+                    if (mapped.NotMapped("C.Climate") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,originalObject.Record.SkyAndWeatherFromRegion))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[1] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,workingContext.Record.SkyAndWeatherFromRegion)) Change = true;
@@ -84,7 +85,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,originalObject.Record.SkyAndWeatherFromRegion))
                                         overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
                                 }
-                                mapped[1] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -92,14 +93,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Encounter Zone
                     //==============================================================================================================
-                    if (Settings.TagList("C.Encounter").Contains(foundContext.ModKey) && !mapped[2])
+                    if (mapped.NotMapped("C.Encounter") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.EncounterZone,originalObject.Record.EncounterZone))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[2] = true;
+                                mapped.SetMapped();
                             else 
                             {
                                 if (Compare.NotEqual(foundContext.Record.EncounterZone,workingContext.Record.EncounterZone)) Change = true;
@@ -111,7 +112,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.EncounterZone,originalObject.Record.EncounterZone))
                                         overrideObject.EncounterZone.SetTo(foundContext.Record.EncounterZone);
                                 }
-                                mapped[2] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -119,14 +120,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Image Space
                     //==============================================================================================================
-                    if (Settings.TagList("C.ImageSpace").Contains(foundContext.ModKey) && !mapped[3]) 
+                    if (mapped.NotMapped("C.ImageSpace") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.ImageSpace,originalObject.Record.ImageSpace))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) 
-                                mapped[3] = true;
+                                mapped.SetMapped();
                             else 
                             {
                                 if (Compare.NotEqual(foundContext.Record.ImageSpace,workingContext.Record.ImageSpace)) Change = true;
@@ -138,15 +139,15 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.ImageSpace,originalObject.Record.ImageSpace))
                                         overrideObject.ImageSpace.SetTo(foundContext.Record.ImageSpace);
                                 }
-                                mapped[3] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
-                
+
                     //==============================================================================================================
                     // Lighting
                     //==============================================================================================================
-                    if (Settings.TagList("C.Light").Contains(foundContext.ModKey) && !mapped[4]) 
+                    if (mapped.NotMapped("C.Light") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Lighting,originalObject.Record.Lighting)
                             || Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
@@ -154,7 +155,7 @@ namespace Fusion
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[4] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Lighting,workingContext.Record.Lighting)) Change = true;
@@ -169,7 +170,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
                                         overrideObject.LightingTemplate.SetTo(foundContext.Record.LightingTemplate);
                                 }
-                                mapped[4] = true;
+                                mapped.SetMapped();
                             }
                             
                         }
@@ -178,14 +179,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Lock List
                     //==============================================================================================================
-                    if (Settings.TagList("C.LockList").Contains(foundContext.ModKey) && !mapped[5])
+                    if (mapped.NotMapped("C.LockList") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.LockList,originalObject.Record.LockList))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[5] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.LockList,workingContext.Record.LockList)) Change = true;
@@ -197,7 +198,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.LockList,originalObject.Record.LockList))
                                         overrideObject.LockList.SetTo(foundContext.Record.LockList);
                                 }
-                                mapped[5] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -205,14 +206,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Location
                     //==============================================================================================================
-                    if (Settings.TagList("C.Location").Contains(foundContext.ModKey) && !mapped[6])
+                    if (mapped.NotMapped("C.Location") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Location,originalObject.Record.Location))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[6] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Location,workingContext.Record.Location)) Change = true;
@@ -224,7 +225,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Location,originalObject.Record.Location))
                                         overrideObject.Location.SetTo(foundContext.Record.Location);
                                 }
-                                mapped[6] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -232,14 +233,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Music
                     //==============================================================================================================
-                    if (Settings.TagList("C.Music").Contains(foundContext.ModKey) && !mapped[7])
+                    if (mapped.NotMapped("C.Music") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[7] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Music,workingContext.Record.Music)) Change = true;
@@ -251,7 +252,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                         overrideObject.Music.SetTo(foundContext.Record.Music);
                                 }
-                                mapped[7] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -259,14 +260,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Name
                     //==============================================================================================================
-                    if (Settings.TagList("C.Name").Contains(foundContext.ModKey) && !mapped[8])
+                    if (mapped.NotMapped("C.Name") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[8] = true;
+                                mapped.SetMapped();
                             else {
                                 if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
 
@@ -277,7 +278,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
-                                mapped[8] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -285,14 +286,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Owner
                     //==============================================================================================================
-                    if (Settings.TagList("C.Owner").Contains(foundContext.ModKey) && !mapped[9])
+                    if (mapped.NotMapped("C.Owner") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Owner,originalObject.Record.Owner))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[9] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Owner,workingContext.Record.Owner)) Change = true;
@@ -304,7 +305,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Owner,originalObject.Record.Owner))
                                         overrideObject.Owner.SetTo(foundContext.Record.Owner);
                                 }
-                                mapped[9] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -312,14 +313,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Sky Lighting
                     //==============================================================================================================
-                    if (Settings.TagList("C.SkyLighting").Contains(foundContext.ModKey) && !mapped[10])
+                    if (mapped.NotMapped("C.SkyLighting") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, originalObject.Record.SkyAndWeatherFromRegion))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[9] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, workingContext.Record.SkyAndWeatherFromRegion)) Change = true;
@@ -331,7 +332,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, originalObject.Record.SkyAndWeatherFromRegion))
                                         overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
                                 }
-                                mapped[10] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -339,7 +340,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Water
                     //==============================================================================================================
-                    if (Settings.TagList("C.Water").Contains(foundContext.ModKey) && !mapped[11])
+                    if (mapped.NotMapped("C.Water") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Water,originalObject.Record.Water)
                             || Compare.NotEqual(foundContext.Record.WaterHeight,originalObject.Record.WaterHeight)
@@ -349,7 +350,7 @@ namespace Fusion
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) 
-                                mapped[10] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Water,workingContext.Record.Water)) Change = true;
@@ -370,7 +371,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.WaterEnvironmentMap,originalObject.Record.WaterEnvironmentMap))
                                         overrideObject.WaterEnvironmentMap = foundContext.Record.WaterEnvironmentMap;
                                 }
-                                mapped[11] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }

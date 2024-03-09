@@ -1,10 +1,6 @@
 using Mutagen.Bethesda;
-using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Binary.Headers;
-using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.WPF.Reflection.Attributes;
 
 namespace Fusion
 {
@@ -29,70 +25,31 @@ namespace Fusion
             SettingsUtility NewSettings = new();
             NewSettings.Process(state, Settings);
 
-            // Begin Record Processing
-            Console.WriteLine("Processing Activators");
-            ActivatorPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Ammunition");
-            AmmunitionPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Armors");
-            ArmorPatcher.Patch(state, NewSettings);
-            ArmorAddonPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Books");
-            BookPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Cells");
-            CellPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Containers");
-            ContainerPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Factions");
-            FactionPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Flora");
-            FloraPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Ingestibles");
-            WeaponPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Ingredients");
-            IngredientPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Leveled Items");
-            LeveledItemPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Leveled NPCs");
-            LeveledNPCPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Leveled Spells");
-            LeveledSpellPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Locations");
-            LocationPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing NPCs");
-            NPCPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Perks");
-            PerkPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Placed NPCs");
-            PlacedNPCPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Quests");
-            QuestPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Scrolls");
-            ScrollPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Soul Gems");
-            SoulGemPatcher.Patch(state, NewSettings);
-
-            Console.WriteLine("Processing Weapons");
-            WeaponPatcher.Patch(state, NewSettings);
+            // Record Patchers
+            ACHR.Patch(state, NewSettings);
+            ACTI.Patch(state, NewSettings);
+            ALCH.Patch(state, NewSettings);
+            AMMO.Patch(state, NewSettings);
+            ARMO.Patch(state, NewSettings);
+            ARMA.Patch(state, NewSettings);
+            BOOK.Patch(state, NewSettings);
+            CELL.Patch(state, NewSettings);
+            CONT.Patch(state, NewSettings);
+            FACT.Patch(state, NewSettings);
+            FLOR.Patch(state, NewSettings);
+            GRAS.Patch(state, NewSettings);
+            INGR.Patch(state, NewSettings);
+            LCTN.Patch(state, NewSettings);
+            LVLI.Patch(state, NewSettings);
+            LVLN.Patch(state, NewSettings);
+            LVSP.Patch(state, NewSettings);
+            NPC_.Patch(state, NewSettings);
+            PERK.Patch(state, NewSettings);
+            QUST.Patch(state, NewSettings);
+            REFR.Patch(state, NewSettings);
+            SCRL.Patch(state, NewSettings);
+            SLGM.Patch(state, NewSettings);
+            WEAP.Patch(state, NewSettings);
         }
     }
 }

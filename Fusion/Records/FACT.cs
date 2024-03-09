@@ -8,24 +8,25 @@ using Mutagen.Bethesda.Plugins.Cache;
 using Noggog;
 
 namespace Fusion
-{    
-    internal class LeveledSpellPatcher
+{
+    internal class FACT
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            HashSet<ModKey> workingModList = Settings.GetModList("Relev,Delev,ObjectBounds");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.LeveledSpell().WinningContextOverrides())
+            Console.WriteLine("Processing Faction");
+            HashSet<ModKey> workingModList = Settings.GetModList("Names,Relations.Remove,Relations.Add,Relations.Change");
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Faction().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IFaction, IFactionGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<ILeveledSpell, ILeveledSpellGetter>(workingContext.Record.FormKey).Last();
-                bool[] mapped = new bool[20];
-                Leveled NewList = new(workingContext.Record.Entries);
+                var originalObject = state.LinkCache.ResolveAllContexts<IFaction, IFactionGetter>(workingContext.Record.FormKey).Last();
+                MappedTags mapped = new MappedTags();
+                Relations NewRelation = new(workingContext.Record.Relations);
 
                 //==============================================================================================================
                 // Mod Lookup
@@ -33,38 +34,43 @@ namespace Fusion
                 foreach(var foundContext in modContext)
                 {
                     //==============================================================================================================
-                    // Object Bounds
+                    // Names
                     //==============================================================================================================
-                    if (Settings.TagList("ObjectBounds").Contains(foundContext.ModKey) && !mapped[0])
+                    if (mapped.NotMapped("Names") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
-                        if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             else
                             {
-                                if (Compare.NotEqual(foundContext.Record.ObjectBounds,workingContext.Record.ObjectBounds)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
 
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                        overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
+                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
 
                     //==============================================================================================================
-                    // Leveled List Adds
+                    // Relation Adds/Changes
                     //==============================================================================================================
-                    if (Settings.TagList("Relev").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Entries,originalObject.Record.Entries))
-                            NewList.Add(foundContext.Record.Entries);
+                    if (Settings.TagList("Relations.Add").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Add(foundContext.Record.Relations);
+
+                    if (Settings.TagList("Relations.Change").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Change(foundContext.Record.Relations, originalObject.Record.Relations);
+
                 }
 
                 //==============================================================================================================
@@ -73,21 +79,22 @@ namespace Fusion
                 foreach(var foundContext in modContext.Reverse())
                 {
                     //==============================================================================================================
-                    // Leveled List Removes
+                    // Relation Removes
                     //==============================================================================================================
-                    if (Settings.TagList("Delev").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Entries,originalObject.Record.Entries))
-                            NewList.Remove(foundContext.Record.Entries, originalObject.Record.Entries);
+                    if (Settings.TagList("Relations.Remove").Contains(foundContext.ModKey))
+                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
+                            NewRelation.Remove(foundContext.Record.Relations, originalObject.Record.Relations);
                 }
 
                 //==============================================================================================================
                 // Finalize
                 //==============================================================================================================
-                if (NewList.Modified)
+                if (NewRelation.Modified)
                 {
                     var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
-                    addedRecord.Entries = NewList.OverrideSpellObject;
+                    addedRecord.Relations.SetTo(NewRelation.OverrideObject);
                 }
+        
             }
         }
     }

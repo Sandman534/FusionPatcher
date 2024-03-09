@@ -9,25 +9,25 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class BOOK
+    internal class AMMO
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Book");
+            Console.WriteLine("Processing Ammo");
             HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sounds,Stats,Text");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Book().WinningContextOverrides())
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Ammunition().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IBook, IBookGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IAmmunition, IAmmunitionGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<IBook, IBookGetter>(workingContext.Record.FormKey).Last();
+                var originalObject = state.LinkCache.ResolveAllContexts<IAmmunition, IAmmunitionGetter>(workingContext.Record.FormKey).Last();
                 MappedTags mapped = new MappedTags();
                 Keywords NewKeywords = new(workingContext.Record.Keywords);
-                
+
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
@@ -66,7 +66,6 @@ namespace Fusion
                     if (mapped.NotMapped("Graphics") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model)
-                            || Compare.NotEqual(foundContext.Record.InventoryArt,originalObject.Record.InventoryArt)
                             || Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
                         {
                             // Checks
@@ -76,17 +75,14 @@ namespace Fusion
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Model,workingContext.Record.Model)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.InventoryArt,workingContext.Record.InventoryArt)) Change = true;
                                 if (Compare.NotEqual(foundContext.Record.Icons,workingContext.Record.Icons)) Change = true;
-
+                                
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model))
                                         overrideObject.Model = foundContext.Record.Model?.DeepCopy();
-                                    if (Compare.NotEqual(foundContext.Record.InventoryArt,originalObject.Record.InventoryArt))
-                                        overrideObject.InventoryArt.SetTo(foundContext.Record.InventoryArt);
                                     if (Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
                                         overrideObject.Icons = foundContext.Record.Icons?.DeepCopy();
                                 }
@@ -108,16 +104,15 @@ namespace Fusion
                                 mapped.SetMapped();
                             else
                             {
-                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.Name, workingContext.Record.Name)) Change = true;
 
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                                    if (Compare.NotEqual(foundContext.Record.Name, originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
-                                mapped.SetMapped();
                             }
                         }
                     }
@@ -141,7 +136,7 @@ namespace Fusion
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                                    if (foundContext.Record.ObjectBounds != null && Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
                                         overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
                                 }
                                 mapped.SetMapped();
@@ -161,8 +156,7 @@ namespace Fusion
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
                                 mapped.SetMapped();
-                            else
-                            {
+                            else {
                                 if (Compare.NotEqual(foundContext.Record.PickUpSound,workingContext.Record.PickUpSound)) Change = true;
                                 if (Compare.NotEqual(foundContext.Record.PutDownSound,workingContext.Record.PutDownSound)) Change = true;
 
@@ -186,6 +180,7 @@ namespace Fusion
                     if (mapped.NotMapped("Stats") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID)
+                            || Compare.NotEqual(foundContext.Record.Damage,originalObject.Record.Damage)
                             || Compare.NotEqual(foundContext.Record.Value,originalObject.Record.Value)
                             || Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
                         {
@@ -196,6 +191,7 @@ namespace Fusion
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.EditorID,workingContext.Record.EditorID)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.Damage,workingContext.Record.Damage)) Change = true;
                                 if (Compare.NotEqual(foundContext.Record.Value,workingContext.Record.Value)) Change = true;
                                 if (Compare.NotEqual(foundContext.Record.Weight,workingContext.Record.Weight)) Change = true;
 
@@ -205,6 +201,8 @@ namespace Fusion
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID))
                                         overrideObject.EditorID = foundContext.Record.EditorID;
+                                    if (Compare.NotEqual(foundContext.Record.Damage,originalObject.Record.Damage))
+                                        overrideObject.Damage = foundContext.Record.Damage;
                                     if (Compare.NotEqual(foundContext.Record.Value,originalObject.Record.Value))
                                         overrideObject.Value = foundContext.Record.Value;
                                     if (Compare.NotEqual(foundContext.Record.Weight,originalObject.Record.Weight))
@@ -223,16 +221,16 @@ namespace Fusion
                     {
 
                         if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description)
-                            || Compare.NotEqual(foundContext.Record.BookText,originalObject.Record.BookText))
+                            || Compare.NotEqual(foundContext.Record.ShortName,originalObject.Record.ShortName))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
                                 mapped.SetMapped();
-                            else
+                            else 
                             {
                                 if (Compare.NotEqual(foundContext.Record.Description,workingContext.Record.Description)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.BookText,workingContext.Record.BookText)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.ShortName,workingContext.Record.ShortName)) Change = true;
 
                                 // Copy Records
                                 if (Change)
@@ -240,14 +238,14 @@ namespace Fusion
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
                                         overrideObject.Description = Utility.NewString(foundContext.Record.Description);
-                                    if (Compare.NotEqual(foundContext.Record.BookText,originalObject.Record.BookText))
-                                        overrideObject.BookText = Utility.NewStringNotNull(foundContext.Record.BookText);
+                                    if (Compare.NotEqual(foundContext.Record.ShortName,originalObject.Record.ShortName))
+                                        overrideObject.ShortName = foundContext.Record.ShortName;
                                 }
                                 mapped.SetMapped();
                             }
                         }
                     }
-                
+
                     //==============================================================================================================
                     // Keyword Adds
                     //==============================================================================================================

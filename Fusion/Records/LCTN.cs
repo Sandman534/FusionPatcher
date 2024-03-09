@@ -9,10 +9,11 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class LocationPatcher
+    internal class LCTN
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
+            Console.WriteLine("Processing Location");
             HashSet<ModKey> workingModList = Settings.GetModList("Keywords,Names,Sounds,Stats");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Location().WinningContextOverrides())
             {
@@ -24,7 +25,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<ILocation, ILocationGetter>(workingContext.Record.FormKey).Last();
-                bool[] mapped = new bool[20];
+                MappedTags mapped = new MappedTags();
                 Keywords NewKeywords = new(workingContext.Record.Keywords);
 
                 //==============================================================================================================
@@ -35,14 +36,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Names
                     //==============================================================================================================
-                    if (Settings.TagList("Names").Contains(foundContext.ModKey) && !mapped[0])
+                    if (mapped.NotMapped("Names") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
@@ -54,7 +55,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
-                                mapped[0] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -62,14 +63,14 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (Settings.TagList("Sounds").Contains(foundContext.ModKey) && !mapped[1])
+                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                         {
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[1] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.Music,workingContext.Record.Music)) Change = true;
@@ -81,7 +82,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                         overrideObject.Music.SetTo(foundContext.Record.Music);
                                 }
-                                mapped[1] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -89,7 +90,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Stats
                     //==============================================================================================================
-                    if (Settings.TagList("Stats").Contains(foundContext.ModKey) && !mapped[2])
+                    if (mapped.NotMapped("Stats") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.ParentLocation,originalObject.Record.ParentLocation)
                             || Compare.NotEqual(foundContext.Record.WorldLocationMarkerRef,originalObject.Record.WorldLocationMarkerRef)
@@ -98,7 +99,7 @@ namespace Fusion
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey) 
-                                mapped[2] = true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.ParentLocation,workingContext.Record.ParentLocation)) Change = true;
@@ -117,7 +118,7 @@ namespace Fusion
                                         overrideObject.WorldLocationRadius = foundContext.Record.WorldLocationRadius;
                                     
                                 }
-                                mapped[2] = true;
+                                mapped.SetMapped();
                             }
                         }
                     }

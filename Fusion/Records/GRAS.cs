@@ -9,35 +9,35 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class PERK
+    internal class GRAS
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Perk");
-            HashSet<ModKey> workingModList = Settings.GetModList("Graphics,Names,Text");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Perk().WinningContextOverrides())
+            Console.WriteLine("Processing Grass");
+            HashSet<ModKey> workingModList = Settings.GetModList("Graphics,ObjectBounds");
+            foreach (var workingContext in state.LoadOrder.PriorityOrder.Grass().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
+                var modContext = state.LinkCache.ResolveAllContexts<IGrass, IGrassGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
                 if (modContext == null || !modContext.Any()) continue;
 
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Last();
+                var originalObject = state.LinkCache.ResolveAllContexts<IGrass, IGrassGetter>(workingContext.Record.FormKey).Last();
                 MappedTags mapped = new MappedTags();
 
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
                 foreach (var foundContext in modContext)
-                {                
+                {
                     //==============================================================================================================
                     // Graphics
                     //==============================================================================================================
                     if (mapped.NotMapped("Graphics") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
+                        if (Compare.NotEqual(foundContext.Record.Model, originalObject.Record.Model))
                         {
                             // Checks
                             bool Change = false;
@@ -45,14 +45,14 @@ namespace Fusion
                                 mapped.SetMapped();
                             else
                             {
-                                if (Compare.NotEqual(foundContext.Record.Icons,workingContext.Record.Icons)) Change = true;
-                                
+                                if (Compare.NotEqual(foundContext.Record.Model, workingContext.Record.Model)) Change = true;
+
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
-                                        overrideObject.Icons = foundContext.Record.Icons?.DeepCopy();
+                                    if (Compare.NotEqual(foundContext.Record.Model, originalObject.Record.Model))
+                                        overrideObject.Model = foundContext.Record.Model?.DeepCopy();
                                 }
                                 mapped.SetMapped();
                             }
@@ -60,11 +60,11 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Names
+                    // Object Bounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Names") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("ObjectBounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
+                        if (Compare.NotEqual(foundContext.Record.ObjectBounds, originalObject.Record.ObjectBounds))
                         {
                             // Checks
                             bool Change = false;
@@ -72,42 +72,14 @@ namespace Fusion
                                 mapped.SetMapped();
                             else
                             {
-                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.ObjectBounds, workingContext.Record.ObjectBounds)) Change = true;
 
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
-                                }
-                                mapped.SetMapped();
-                            }
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Text
-                    //==============================================================================================================
-                    if (mapped.NotMapped("Text") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
-                    {
-
-                        if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.Description,workingContext.Record.Description)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                                        overrideObject.Description = Utility.NewStringNotNull(foundContext.Record.Description);
+                                    if (Compare.NotEqual(foundContext.Record.ObjectBounds, originalObject.Record.ObjectBounds))
+                                        overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
                                 }
                                 mapped.SetMapped();
                             }

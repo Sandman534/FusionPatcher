@@ -6,7 +6,141 @@ using Mutagen.Bethesda.Skyrim;
 using Noggog;
 using System.Collections.Immutable;
 using System.Drawing;
-namespace Fusion;
+using DynamicData.Diagnostics;
+using Mutagen.Bethesda.Synthesis;
+
+public class MappedTags 
+{
+    Dictionary<string, bool> keywordList = new Dictionary<string, bool>();
+    string tag = "";
+
+    public MappedTags()
+    {
+        // Actor
+        keywordList.Add("Actors.ACBS", false);
+        keywordList.Add("Actors.AIData", false);
+        keywordList.Add("Actors.AIPackages", false);
+        keywordList.Add("Actors.AIPackagesForceAdd", false);
+        keywordList.Add("Actors.CombatStyle", false);
+        keywordList.Add("Actors.DeathItem", false);
+        keywordList.Add("Actors.Factions", false);
+        keywordList.Add("Actors.Perks.Add", false);
+        keywordList.Add("Actors.Perks.Change", false);
+        keywordList.Add("Actors.Perks.Remove", false);
+        keywordList.Add("Actors.RecordFlags", false);
+        keywordList.Add("Actors.Skeleton", false);
+        keywordList.Add("Actors.Spells", false);
+        keywordList.Add("Actors.SpellsForceAdd", false);
+        keywordList.Add("Actors.Stats", false);
+        keywordList.Add("Actors.Voice", false);
+
+        // NPC
+        keywordList.Add("NPC.AIPackageOverrides", false);
+        keywordList.Add("NPC.AttackRace", false);
+        keywordList.Add("NPC.Class", false);
+        keywordList.Add("NPC.CrimeFaction", false);
+        keywordList.Add("NPC.DefaultOutfit", false);
+        keywordList.Add("NPC.Race", false);
+        keywordList.Add("NpcFacesForceFullImport", false);
+
+        // Cell
+        keywordList.Add("C.Acoustic", false);
+        keywordList.Add("C.Climate", false);
+        keywordList.Add("C.Encounter", false);
+        keywordList.Add("C.ImageSpace", false);
+        keywordList.Add("C.Light", false);
+        keywordList.Add("C.LockList", false);
+        keywordList.Add("C.Location", false);
+        keywordList.Add("C.MiscFlags", false);
+        keywordList.Add("C.Music", false);
+        keywordList.Add("C.Name", false);
+        keywordList.Add("C.Owner", false);
+        keywordList.Add("C.RecordFlags", false);
+        keywordList.Add("C.Regions", false);
+        keywordList.Add("C.SkyLighting", false);
+        keywordList.Add("C.Water", false);
+
+        keywordList.Add("Destructible", false);
+        keywordList.Add("EffectStats", false);
+        keywordList.Add("Enchantments", false);
+        keywordList.Add("EnchantmentStats", false);
+        keywordList.Add("Graphics", false);
+
+        // Inventory
+        keywordList.Add("Invent.Add", false);
+        keywordList.Add("Invent.Change", false);
+        keywordList.Add("Invent.Remove", false);
+
+        keywordList.Add("Keywords", false);
+
+        // Leveled List
+        keywordList.Add("Delev", false);
+        keywordList.Add("Relev", false);
+
+        keywordList.Add("Names", false);
+
+        // Outfits
+        keywordList.Add("Outfits.Add", false);
+        keywordList.Add("Outfits.Remove", false);
+
+        // Race
+        keywordList.Add("R.AddSpells", false);
+        keywordList.Add("R.Body-F", false);
+        keywordList.Add("R.Body-M", false);
+        keywordList.Add("R.Body-Size-F", false);
+        keywordList.Add("R.Body-Size-M", false);
+        keywordList.Add("R.ChangeSpells", false);
+        keywordList.Add("R.Description", false);
+        keywordList.Add("R.Ears", false);
+        keywordList.Add("R.Eyes", false);
+        keywordList.Add("R.Hair", false);
+        keywordList.Add("R.Head", false);
+        keywordList.Add("R.Mouth", false);
+        keywordList.Add("R.Skills", false);
+        keywordList.Add("R.Teeth", false);
+        keywordList.Add("R.Voice-F", false);
+        keywordList.Add("R.Voice-M", false);
+
+        // References
+        keywordList.Add("F.Base", false);
+        keywordList.Add("F.EnableParent", false);
+        keywordList.Add("F.LocationReference", false);
+
+        // Relationships
+        keywordList.Add("R.Relations.Add", false);
+        keywordList.Add("R.Relations.Change", false);
+        keywordList.Add("R.Relations.Remove", false);
+        keywordList.Add("Relations.Add", false);
+        keywordList.Add("Relations.Change", false);
+        keywordList.Add("Relations.Remove", false);
+
+        keywordList.Add("Scripts", false);
+        keywordList.Add("Sound", false);
+
+        // Stats
+        keywordList.Add("ObjectBounds", false);
+        keywordList.Add("SpellStats", false);
+        keywordList.Add("Stats", false);
+
+        keywordList.Add("Text", false);
+    }
+
+    public string GetTag()
+    {
+        return tag;
+    }
+
+    public bool NotMapped(string index)
+    {
+        tag = index;
+        return !keywordList[tag];
+    }
+
+    public void SetMapped()
+    {
+        keywordList[tag] = true;
+    }
+}
 
 public static class Compare
 {
