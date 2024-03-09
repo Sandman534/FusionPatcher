@@ -15,7 +15,7 @@ namespace Fusion
         {
             Console.WriteLine("Processing Container");
             HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Invent.Remove,Invent.Add,Invent.Change,Keywords,Names" +
-                ",ObjectBounds,Sounds,Scripts,Sounds");
+                ",ObjectBounds,Sound,Scripts,Sounds");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Container().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -172,7 +172,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.OpenSound,originalObject.Record.OpenSound)
                             || Compare.NotEqual(foundContext.Record.CloseSound,originalObject.Record.CloseSound))

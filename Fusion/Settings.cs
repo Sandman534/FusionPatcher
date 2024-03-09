@@ -41,7 +41,7 @@ namespace Fusion
         [SettingName("Graphics")]
         public List<ModKey> settingsGraphics = new();
 
-        [SettingName("Inventory")]
+        [SettingName("Inventory \\ Container")]
         public List<ModKey> settingsInventory = new();
 
         [SettingName("Keywords")]
