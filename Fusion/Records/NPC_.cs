@@ -156,7 +156,7 @@ namespace Fusion
                                     if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
                                         overrideObject.AttackRace.SetTo(foundContext.Record.AttackRace);
                                 }
-                                mapped[3]= true;
+                                mapped.SetMapped();
                             }
                         }
                     }
@@ -280,7 +280,7 @@ namespace Fusion
                             // Checks
                             bool Change = false;
                             if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped[8] =  true;
+                                mapped.SetMapped();
                             else
                             {
                                 if (Compare.NotEqual(foundContext.Record.DefaultOutfit,workingContext.Record.DefaultOutfit)) Change = true;
