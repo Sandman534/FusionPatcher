@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             Console.WriteLine("Processing Activator");
-            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sounds,Text");
+            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sound,Text");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Activator().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -144,7 +144,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.ActivationSound,originalObject.Record.ActivationSound)
                             || Compare.NotEqual(foundContext.Record.LoopingSound,originalObject.Record.LoopingSound))

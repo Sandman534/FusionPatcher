@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             Console.WriteLine("Processing Armor Addon");
-            HashSet<ModKey> workingModList = Settings.GetModList("Graphics,Sounds");
+            HashSet<ModKey> workingModList = Settings.GetModList("Graphics,Sound");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.ArmorAddon().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -66,7 +66,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.FootstepSound,originalObject.Record.FootstepSound))
                         {

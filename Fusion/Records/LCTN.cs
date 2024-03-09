@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             Console.WriteLine("Processing Location");
-            HashSet<ModKey> workingModList = Settings.GetModList("Keywords,Names,Sounds,Stats");
+            HashSet<ModKey> workingModList = Settings.GetModList("Keywords,Names,Sound,Stats");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Location().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -63,7 +63,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                         {

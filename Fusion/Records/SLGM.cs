@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             Console.WriteLine("Processing Soul Gem");
-            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sounds,Stats");
+            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Graphics,Keywords,Names,ObjectBounds,Sound,Stats");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.SoulGem().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -123,7 +123,7 @@ namespace Fusion
                     //==============================================================================================================
                     if (mapped.NotMapped("ObjectBounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
-                        if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
+                        if (Compare.NotEqual(foundContext.Record.ObjectBounds, originalObject.Record.ObjectBounds))
                         {
                             // Checks
                             bool Change = false;
@@ -131,14 +131,14 @@ namespace Fusion
                                 mapped.SetMapped();
                             else
                             {
-                                if (Compare.NotEqual(foundContext.Record.ObjectBounds,workingContext.Record.ObjectBounds)) Change = true;
+                                if (Compare.NotEqual(foundContext.Record.ObjectBounds, workingContext.Record.ObjectBounds)) Change = true;
 
                                 // Copy Records
                                 if (Change)
                                 {
                                     var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.ObjectBounds, originalObject.Record.ObjectBounds) && foundContext.Record.ObjectBounds != null)
-                                        overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
+                                        overrideObject.ObjectBounds?.DeepCopyIn(foundContext.Record.ObjectBounds);
                                 }
                                 mapped.SetMapped();
                             }
@@ -148,7 +148,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound)
                             || Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound))

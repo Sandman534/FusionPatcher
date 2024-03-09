@@ -14,7 +14,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             Console.WriteLine("Processing Weapon");
-            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Enchantments,Graphics,Keywords,Names,ObjectBounds,Sounds,Stats,Text");
+            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Enchantments,Graphics,Keywords,Names,ObjectBounds,Sound,Stats,Text");
             foreach (var workingContext in state.LoadOrder.PriorityOrder.Weapon().WinningContextOverrides())
             {
                 // Skip record if its not in one of our overwrite mods
@@ -178,7 +178,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
                     {
                         if (Compare.NotEqual(foundContext.Record.AttackSound,originalObject.Record.AttackSound)
                             || Compare.NotEqual(foundContext.Record.AttackSound2D,originalObject.Record.AttackSound2D)
