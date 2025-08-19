@@ -26,7 +26,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<IPlacedNpc, IPlacedNpcGetter>(workingContext.Record.FormKey).Last();
-                MappedTags mapped = new MappedTags();
+                MappedTags mapped = new();
 
                 //==============================================================================================================
                 // Mod Lookup

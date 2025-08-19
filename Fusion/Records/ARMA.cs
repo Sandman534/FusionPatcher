@@ -25,7 +25,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<IArmorAddon, IArmorAddonGetter>(workingContext.Record.FormKey).Last();
-                MappedTags mapped = new MappedTags();
+                MappedTags mapped = new();
 
                 //==============================================================================================================
                 // Mod Lookup

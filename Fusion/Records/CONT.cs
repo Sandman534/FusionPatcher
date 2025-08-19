@@ -26,7 +26,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 var originalObject = state.LinkCache.ResolveAllContexts<IContainer, IContainerGetter>(workingContext.Record.FormKey).Last();
-                MappedTags mapped = new MappedTags();
+                MappedTags mapped = new();
                 Containers NewContainer = new(workingContext.Record.Items);
 
                 //==============================================================================================================

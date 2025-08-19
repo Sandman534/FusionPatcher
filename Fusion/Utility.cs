@@ -150,7 +150,7 @@ public static class Compare
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
         // Filename Test
-        if (Record1?.File.RawPath != Record2?.File.RawPath)
+        if (Record1?.File.DataRelativePath != Record2?.File.DataRelativePath)
             return true;    
 
         // Alternate Texture Test
@@ -177,9 +177,9 @@ public static class Compare
         // Null Test
         if (NullTest(Record1,Record2, out bool Result)) return Result;
 
-        if (Record1?.LargeIconFilename.RawPath != Record2?.LargeIconFilename.RawPath)
+        if (Record1?.LargeIconFilename.DataRelativePath != Record2?.LargeIconFilename.DataRelativePath)
             return true;
-        if (Record1?.SmallIconFilename?.RawPath != Record2?.SmallIconFilename?.RawPath)
+        if (Record1?.SmallIconFilename?.DataRelativePath != Record2?.SmallIconFilename?.DataRelativePath)
             return true;
 
         return false;

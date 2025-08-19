@@ -26,6 +26,9 @@ namespace Fusion
         [SettingName("Actors")]
         public List<ModKey> settingsActors = new();
 
+        [SettingName("Actor Tags")]
+        public List<ActorSettings> granularActors = new() { new ActorSettings() };
+
         [SettingName("Cells")]
         public List<ModKey> settingsCells = new();
 
@@ -100,36 +103,66 @@ namespace Fusion
 
     public class CellSettings
     {
-        [SettingName("C.Acoustic")]
+        [SettingName("Acoustic")]
         public List<ModKey> cellAcoustic = new();
-        [SettingName("C.Climate")]
+        [SettingName("Climate")]
         public List<ModKey> cellClimate = new();
-        [SettingName("C.Encounter")]
+        [SettingName("Encounter")]
         public List<ModKey> cellEncounter = new();
-        [SettingName("C.ImageSpace")]
+        [SettingName("Image Space")]
         public List<ModKey> cellImageSpace = new();
-        [SettingName("C.Light")]
+        [SettingName("Light")]
         public List<ModKey> cellLight = new();
-        [SettingName("C.LockList")]
+        [SettingName("Lock List")]
         public List<ModKey> cellLockList = new();
-        [SettingName("C.Location")]
+        [SettingName("Location")]
         public List<ModKey> cellLocation = new();
-        [SettingName("C.MiscFlags")]
+        [SettingName("Misc Flags")]
         public List<ModKey> cellMiscFlags = new();
-        [SettingName("C.Music")]
+        [SettingName("Music")]
         public List<ModKey> cellMusic = new();
-        [SettingName("C.Name")]
+        [SettingName("Name")]
         public List<ModKey> cellName = new();
-        [SettingName("C.Owner")]
+        [SettingName("Owner")]
         public List<ModKey> cellOwner = new();
-        [SettingName("C.RecordFlags")]
+        [SettingName("Record Flags")]
         public List<ModKey> cellRecordFlags = new();
-        [SettingName("C.Regions")]
+        [SettingName("Regions")]
         public List<ModKey> cellRegions = new();
-        [SettingName("C.SkyLighting")]
+        [SettingName("Sky Lighting")]
         public List<ModKey> cellSkyLighting = new();
-        [SettingName("C.Water")]
+        [SettingName("Water")]
         public List<ModKey> cellWater = new();
+    }
+
+    public class ActorSettings
+    {
+        [SettingName("ACBS")]
+        public List<ModKey> actorACBS = new();
+        [SettingName("AI Data")]
+        public List<ModKey> actorAIData = new();
+        [SettingName("AI Package Overrides")]
+        public List<ModKey> actorAIPackageOverride = new();
+        [SettingName("AI Packages Overrides")]
+        public List<ModKey> actorAIPackages = new();
+        [SettingName("AttackRace")]
+        public List<ModKey> actorAttackRace = new();
+        [SettingName("Class")]
+        public List<ModKey> actorClass = new();
+        [SettingName("Combat Style")]
+        public List<ModKey> actorCombatStyle = new();
+        [SettingName("Crime Faction")]
+        public List<ModKey> actorCrimeFaction = new();
+        [SettingName("DeathItem")]
+        public List<ModKey> actorDeathItem = new();
+        [SettingName("Default Outfit")]
+        public List<ModKey> actorOutfit = new();
+        [SettingName("Full Face Import")]
+        public List<ModKey> actorFullFace = new();
+        [SettingName("Race")]
+        public List<ModKey> actorRace = new();
+        [SettingName("Voice")]
+        public List<ModKey> actorVoice = new();
     }
 
     public class RefSettings
@@ -395,6 +428,24 @@ namespace Fusion
                 ProcessUserSetting(setting.cellRegions,"C.Regions");
                 ProcessUserSetting(setting.cellSkyLighting,"C.SkyLighting");
                 ProcessUserSetting(setting.cellWater,"C.Water");
+            }
+
+            // Process Actor Settings
+            foreach (var setting in UserSettings.granularActors)
+            {
+                ProcessUserSetting(setting.actorACBS, "Actors.ACBS");
+                ProcessUserSetting(setting.actorAIData, "Actors.AIData");
+                ProcessUserSetting(setting.actorAIPackageOverride, "NPC.AIPackageOverrides");
+                ProcessUserSetting(setting.actorAIPackages, "NPC.AIPackages");
+                ProcessUserSetting(setting.actorAttackRace, "NPC.AttackRace");
+                ProcessUserSetting(setting.actorClass, "NPC.Class");
+                ProcessUserSetting(setting.actorCombatStyle, "Actors.CombatStyle");
+                ProcessUserSetting(setting.actorCrimeFaction, "NPC.CrimeFaction");
+                ProcessUserSetting(setting.actorDeathItem, "Actors.DeathItem");
+                ProcessUserSetting(setting.actorOutfit, "NPC.DefaultOutfit");
+                ProcessUserSetting(setting.actorFullFace, "NpcFacesForceFullImport");
+                ProcessUserSetting(setting.actorRace, "NPC.Race");
+                ProcessUserSetting(setting.actorVoice, "Actors.Voice");
             }
 
             // Process Ref Settings
