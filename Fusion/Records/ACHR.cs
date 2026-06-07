@@ -14,19 +14,29 @@ namespace Fusion
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Actor Reference");
+            // Get the working mod lists
             HashSet<ModKey> workingModList = Settings.GetModList("F.Base,F.EnableParent,F.LocationReference");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.PlacedNpc().WinningContextOverrides(state.LinkCache))
-            {
-                // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IPlacedNpc, IPlacedNpcGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
-                if (modContext == null || !modContext.Any()) continue;
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IPlacedNpcGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Actor Reference");
 
+            // Loop through the 
+            foreach (var formKey in affectedFormKeys)
+            {
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<IPlacedNpc, IPlacedNpcGetter>(workingContext.Record.FormKey).Last();
-                MappedTags mapped = new();
+                // Get all the contexts, and leave if there is none
+                var allContexts = state.LinkCache.ResolveAllContexts<IPlacedNpc, IPlacedNpcGetter>(formKey).ToList();
+                if (allContexts.Count < 2) continue;
+
+                // Get the last context, as well as the mods context
+                var workingContext = allContexts[0];
+                var originalObject = allContexts[^1];
+                var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
+
+                // Tracking Tags
+                IPlacedNpc? overrideObject = null;
+                MappedTags mapped = new MappedTags();
 
                 //==============================================================================================================
                 // Mod Lookup
@@ -51,7 +61,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Base, originalObject.Record.Base))
                                         overrideObject.Base.FormKey = foundContext.Record.Base.FormKey;
                                 }
@@ -78,7 +88,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.EnableParent, originalObject.Record.EnableParent))
                                         overrideObject.EnableParent = foundContext.Record.EnableParent?.DeepCopy();
                                 }
@@ -105,7 +115,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.EnableParent, originalObject.Record.EnableParent))
                                         overrideObject.LocationReference.SetTo(foundContext.Record.LocationReference);
                                 }

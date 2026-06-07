@@ -13,21 +13,31 @@ namespace Fusion
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing NPC");
+            // Get the working mod lists
             HashSet<ModKey> workingModList = Settings.GetModList("Actors.ACBS,Actors.AIData,Actors.AIPackages,Actors.AIPackagesForceAdd,Actors.CombatStyle" +
                 ",Actors.DeathItem,Actors.Factions,Actors.Perks.Add,Actors.Perks.Change,Actors.Perks.Remove,Actors.RecordFlags,Actors.Skeleton" + 
                 ",Actors.Spells,Actors.SpellsForceAdd,Actors.Stats,Actors.Voice,NPC.AIPackageOverrides,NPC.AttackRace,NPC.Class,NPC.CrimeFaction" +
                 ",NPC.DefaultOutfit,NPC.Race,NpcFacesForceFullImport,Invent.Add,Invent.Remove,Invent.Change,Keywords");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Npc().WinningContextOverrides())
-            {
-                // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<INpc, INpcGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
-                if (modContext == null || !modContext.Any()) continue;
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<INpcGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "NPC");
 
+            // Loop through the 
+            foreach (var formKey in affectedFormKeys)
+            {
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<INpc, INpcGetter>(workingContext.Record.FormKey).Last();
+                // Get all the contexts, and leave if there is none
+                var allContexts = state.LinkCache.ResolveAllContexts<INpc, INpcGetter>(formKey).ToList();
+                if (allContexts.Count < 2) continue;
+
+                // Get the last context, as well as the mods context
+                var workingContext = allContexts[0];
+                var originalObject = allContexts[^1];
+                var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
+
+                // Tracking Tags
+                INpc? overrideObject = null;
                 MappedTags mapped = new MappedTags();
                 Keywords NewKeywords = new(workingContext.Record.Keywords);
                 Packages NewPackages = new(workingContext.Record.Packages);
@@ -59,7 +69,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Configuration,originalObject.Record.Configuration))
                                         overrideObject.Configuration.DeepCopyIn(foundContext.Record.Configuration);
                                 }
@@ -86,7 +96,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.AIData,originalObject.Record.AIData))
                                         overrideObject.AIData.DeepCopyIn(foundContext.Record.AIData);
                                 }
@@ -119,7 +129,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.SpectatorOverridePackageList,originalObject.Record.SpectatorOverridePackageList))
                                         overrideObject.SpectatorOverridePackageList.SetTo(foundContext.Record.SpectatorOverridePackageList);
                                     if (Compare.NotEqual(foundContext.Record.ObserveDeadBodyOverridePackageList,originalObject.Record.ObserveDeadBodyOverridePackageList))
@@ -152,7 +162,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.AttackRace,originalObject.Record.AttackRace))
                                         overrideObject.AttackRace.SetTo(foundContext.Record.AttackRace);
                                 }
@@ -179,7 +189,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Class,originalObject.Record.Class))
                                         overrideObject.Class.SetTo(foundContext.Record.Class);
                                 }
@@ -206,7 +216,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.CombatStyle,originalObject.Record.CombatStyle))
                                         overrideObject.CombatStyle.SetTo(foundContext.Record.CombatStyle);
                                 }
@@ -233,7 +243,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.CrimeFaction,originalObject.Record.CrimeFaction))
                                         overrideObject.CrimeFaction.SetTo(foundContext.Record.CrimeFaction);
                                 }
@@ -260,7 +270,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.DeathItem,originalObject.Record.DeathItem))
                                         overrideObject.DeathItem.SetTo(foundContext.Record.DeathItem);
                                 }
@@ -289,7 +299,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.DefaultOutfit,originalObject.Record.DefaultOutfit))
                                         overrideObject.DefaultOutfit.SetTo(foundContext.Record.DefaultOutfit);
                                     if (Compare.NotEqual(foundContext.Record.Template,originalObject.Record.Template))
@@ -318,7 +328,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
@@ -359,7 +369,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.HeadParts,originalObject.Record.HeadParts))
                                     {
                                         overrideObject.HeadParts.Clear();
@@ -407,7 +417,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Race,originalObject.Record.Race))
                                         overrideObject.Race.SetTo(foundContext.Record.Race);
                                 }
@@ -434,7 +444,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Voice,originalObject.Record.Voice))
                                         overrideObject.Voice.SetTo(foundContext.Record.Voice);
                                 }

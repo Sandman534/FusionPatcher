@@ -13,19 +13,29 @@ namespace Fusion
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Cell");
+            // Get the working mod lists
             HashSet<ModKey> workingModList = Settings.GetModList("C.Acoustic,C.Climate,C.Encounter,C.ImageSpace,C.Light,C.LockList,C.Location,C.MiscFlags" +
                 ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.SkyLighting,C.Water");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Cell().WinningContextOverrides(state.LinkCache))
-            {
-                // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<ICell, ICellGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
-                if (!modContext.Any()) continue;
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ICellGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Cell");
 
+            // Loop through the 
+            foreach (var formKey in affectedFormKeys)
+            {
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<ICell, ICellGetter>(workingContext.Record.FormKey).Last();
+                // Get all the contexts, and leave if there is none
+                var allContexts = state.LinkCache.ResolveAllContexts<ICell, ICellGetter>(formKey).ToList();
+                if (allContexts.Count < 2) continue;
+
+                // Get the last context, as well as the mods context
+                var workingContext = allContexts[0];
+                var originalObject = allContexts[^1];
+                var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
+
+                // Tracking Tags
+                ICell? overrideObject = null;
                 MappedTags mapped = new MappedTags();
                 Flags<Cell.Flag> NewFlags = new(workingContext.Record.Flags);
                 Flags<Cell.MajorFlag> NewMajorFlags = new(workingContext.Record.MajorFlags);
@@ -54,7 +64,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.AcousticSpace,originalObject.Record.AcousticSpace))
                                         overrideObject.AcousticSpace.SetTo(foundContext.Record.AcousticSpace);
                                 }
@@ -81,7 +91,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion,originalObject.Record.SkyAndWeatherFromRegion))
                                         overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
                                 }
@@ -108,7 +118,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.EncounterZone,originalObject.Record.EncounterZone))
                                         overrideObject.EncounterZone.SetTo(foundContext.Record.EncounterZone);
                                 }
@@ -135,7 +145,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.ImageSpace,originalObject.Record.ImageSpace))
                                         overrideObject.ImageSpace.SetTo(foundContext.Record.ImageSpace);
                                 }
@@ -164,7 +174,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Lighting,originalObject.Record.Lighting))
                                         overrideObject.Lighting = foundContext.Record.Lighting?.DeepCopy();
                                     if (Compare.NotEqual(foundContext.Record.LightingTemplate,originalObject.Record.LightingTemplate))
@@ -194,7 +204,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.LockList,originalObject.Record.LockList))
                                         overrideObject.LockList.SetTo(foundContext.Record.LockList);
                                 }
@@ -221,7 +231,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Location,originalObject.Record.Location))
                                         overrideObject.Location.SetTo(foundContext.Record.Location);
                                 }
@@ -248,7 +258,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                         overrideObject.Music.SetTo(foundContext.Record.Music);
                                 }
@@ -274,7 +284,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
@@ -301,7 +311,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Owner,originalObject.Record.Owner))
                                         overrideObject.Owner.SetTo(foundContext.Record.Owner);
                                 }
@@ -328,7 +338,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.SkyAndWeatherFromRegion, originalObject.Record.SkyAndWeatherFromRegion))
                                         overrideObject.SkyAndWeatherFromRegion.SetTo(foundContext.Record.SkyAndWeatherFromRegion);
                                 }
@@ -361,7 +371,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Water,originalObject.Record.Water))
                                         overrideObject.Water.SetTo(foundContext.Record.Water);
                                     if (Compare.NotEqual(foundContext.Record.WaterHeight,originalObject.Record.WaterHeight))

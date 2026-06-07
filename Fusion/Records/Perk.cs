@@ -13,18 +13,28 @@ namespace Fusion
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Perk");
+            // Get the working mod lists
             HashSet<ModKey> workingModList = Settings.GetModList("Graphics,Names,Text");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Perk().WinningContextOverrides())
-            {
-                // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
-                if (modContext == null || !modContext.Any()) continue;
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IPerkGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Perk");
 
+            // Loop through the 
+            foreach (var formKey in affectedFormKeys)
+            {
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(workingContext.Record.FormKey).Last();
+                // Get all the contexts, and leave if there is none
+                var allContexts = state.LinkCache.ResolveAllContexts<IPerk, IPerkGetter>(formKey).ToList();
+                if (allContexts.Count < 2) continue;
+
+                // Get the last context, as well as the mods context
+                var workingContext = allContexts[0];
+                var originalObject = allContexts[^1];
+                var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
+
+                // Tracking Tags
+                IPerk? overrideObject = null;
                 MappedTags mapped = new MappedTags();
 
                 //==============================================================================================================
@@ -50,7 +60,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
                                         overrideObject.Icons = foundContext.Record.Icons?.DeepCopy();
                                 }
@@ -77,7 +87,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
@@ -105,7 +115,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
                                         overrideObject.Description = Utility.NewStringNotNull(foundContext.Record.Description);
                                 }

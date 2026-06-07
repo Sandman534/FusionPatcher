@@ -433,19 +433,19 @@ namespace Fusion
             // Process Actor Settings
             foreach (var setting in UserSettings.granularActors)
             {
-                ProcessUserSetting(setting.actorACBS, "Actors.ACBS");
-                ProcessUserSetting(setting.actorAIData, "Actors.AIData");
-                ProcessUserSetting(setting.actorAIPackageOverride, "NPC.AIPackageOverrides");
-                ProcessUserSetting(setting.actorAIPackages, "NPC.AIPackages");
-                ProcessUserSetting(setting.actorAttackRace, "NPC.AttackRace");
-                ProcessUserSetting(setting.actorClass, "NPC.Class");
-                ProcessUserSetting(setting.actorCombatStyle, "Actors.CombatStyle");
-                ProcessUserSetting(setting.actorCrimeFaction, "NPC.CrimeFaction");
-                ProcessUserSetting(setting.actorDeathItem, "Actors.DeathItem");
-                ProcessUserSetting(setting.actorOutfit, "NPC.DefaultOutfit");
-                ProcessUserSetting(setting.actorFullFace, "NpcFacesForceFullImport");
-                ProcessUserSetting(setting.actorRace, "NPC.Race");
-                ProcessUserSetting(setting.actorVoice, "Actors.Voice");
+                ProcessUserSetting(setting.actorACBS,"Actors.ACBS");
+                ProcessUserSetting(setting.actorAIData,"Actors.AIData");
+                ProcessUserSetting(setting.actorAIPackageOverride,"NPC.AIPackageOverrides");
+                ProcessUserSetting(setting.actorAIPackages,"NPC.AIPackages");
+                ProcessUserSetting(setting.actorAttackRace,"NPC.AttackRace");
+                ProcessUserSetting(setting.actorClass,"NPC.Class");
+                ProcessUserSetting(setting.actorCombatStyle,"Actors.CombatStyle");
+                ProcessUserSetting(setting.actorCrimeFaction,"NPC.CrimeFaction");
+                ProcessUserSetting(setting.actorDeathItem,"Actors.DeathItem");
+                ProcessUserSetting(setting.actorOutfit,"NPC.DefaultOutfit");
+                ProcessUserSetting(setting.actorFullFace,"NpcFacesForceFullImport");
+                ProcessUserSetting(setting.actorRace,"NPC.Race");
+                ProcessUserSetting(setting.actorVoice,"Actors.Voice");
             }
 
             // Process Ref Settings

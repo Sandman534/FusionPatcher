@@ -13,18 +13,28 @@ namespace Fusion
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
-            Console.WriteLine("Processing Location");
+            // Get the working mod lists
             HashSet<ModKey> workingModList = Settings.GetModList("Keywords,Names,Sound,Stats");
-            foreach (var workingContext in state.LoadOrder.PriorityOrder.Location().WinningContextOverrides())
-            {
-                // Skip record if its not in one of our overwrite mods
-                var modContext = state.LinkCache.ResolveAllContexts<ILocation, ILocationGetter>(workingContext.Record.FormKey).Where(context => workingModList.Contains(context.ModKey));
-                if (modContext == null || !modContext.Any()) continue;
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ILocationGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Location");
 
+            // Loop through the 
+            foreach (var formKey in affectedFormKeys)
+            {
                 //==============================================================================================================
                 // Initial Settings
                 //==============================================================================================================
-                var originalObject = state.LinkCache.ResolveAllContexts<ILocation, ILocationGetter>(workingContext.Record.FormKey).Last();
+                // Get all the contexts, and leave if there is none
+                var allContexts = state.LinkCache.ResolveAllContexts<ILocation, ILocationGetter>(formKey).ToList();
+                if (allContexts.Count < 2) continue;
+
+                // Get the last context, as well as the mods context
+                var workingContext = allContexts[0];
+                var originalObject = allContexts[^1];
+                var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
+
+                // Tracking Tags
+                ILocation? overrideObject = null;
                 MappedTags mapped = new MappedTags();
                 Keywords NewKeywords = new(workingContext.Record.Keywords);
 
@@ -51,7 +61,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
                                         overrideObject.Name = Utility.NewString(foundContext.Record.Name);
                                 }
@@ -78,7 +88,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.Music,originalObject.Record.Music))
                                         overrideObject.Music.SetTo(foundContext.Record.Music);
                                 }
@@ -109,7 +119,7 @@ namespace Fusion
                                 // Copy Records
                                 if (Change)
                                 {
-                                    var overrideObject = workingContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
                                     if (Compare.NotEqual(foundContext.Record.ParentLocation,originalObject.Record.ParentLocation))
                                         overrideObject.ParentLocation.SetTo(foundContext.Record.ParentLocation);
                                     if (Compare.NotEqual(foundContext.Record.WorldLocationMarkerRef,originalObject.Record.WorldLocationMarkerRef))

@@ -10,6 +10,7 @@ namespace Fusion
         public Global[]? globals { get; set; }
         public Group[]? groups { get; set; }
         public Plugin[]? plugins { get; set; }
+        public string? some_string { get; set; }
     }
 
     public class Prelude

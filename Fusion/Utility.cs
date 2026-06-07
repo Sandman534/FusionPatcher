@@ -1,4 +1,4 @@
-using Mutagen.Bethesda;
+﻿using Mutagen.Bethesda;
 using Mutagen.Bethesda.Strings;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -786,6 +786,28 @@ public static class Compare
 
 public class Utility
 {
+    public static HashSet<FormKey> GetAffectedFormKeys<T>(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, HashSet<ModKey> workingModList) where T : class, IMajorRecordGetter
+    {
+        HashSet<FormKey> affectedFormKeys = [];
+
+        foreach (var mod in state.LoadOrder.PriorityOrder) {
+            if (!workingModList.Contains(mod.ModKey) || mod.Mod is null)
+                continue;
+
+            foreach (var record in mod.Mod.EnumerateMajorRecords<T>()) {
+                affectedFormKeys.Add(record.FormKey);
+            }
+        }
+        
+        return affectedFormKeys;
+    }
+
+    public static void RecordCountMessage(int iRecordCount, string sRecordType)
+    {
+        if (iRecordCount > 0)
+            Console.WriteLine("Processing {0} {1} Records", iRecordCount, sRecordType);
+    }
+
     public static GenderedItem<T?>? NewGender<T>(T? Male, T? Female)
     {
         if (Male == null && Female == null) return null;
