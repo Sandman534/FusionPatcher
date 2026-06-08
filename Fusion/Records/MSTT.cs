@@ -7,14 +7,14 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class DOOR
+    internal class MSTT
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Graphics, Tags.Names, Tags.ObjectBounds, Tags.Sound);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IDoorGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Door");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Names, Tags.ObjectBounds, Tags.Sound);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IMoveableStaticGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Movable Static");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -23,7 +23,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<IDoor, IDoorGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IMoveableStatic, IMoveableStaticGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -32,7 +32,7 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                IDoor? overrideObject = null;
+                IMoveableStatic? overrideObject = null;
                 MappedTags mapped = new();
 
                 //==============================================================================================================
@@ -52,24 +52,6 @@ namespace Fusion
                                 if (Utility.ShouldChange(fContext.Record.Destructible,wContext.Record.Destructible,oContext.Record.Destructible)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
                                     overrideObject.Destructible = fContext.Record.Destructible?.DeepCopy();
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Graphics
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Model = fContext.Record.Model?.DeepCopy();
                                 }
                             }
                             mapped.SetMapped();
@@ -118,24 +100,12 @@ namespace Fusion
                     if (Utility.TagCheck(Tags.Sound, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.OpenSound,oContext.Record.OpenSound)
-                            || Compare.NotEqual(fContext.Record.CloseSound,oContext.Record.CloseSound)
-                            || Compare.NotEqual(fContext.Record.LoopSound,oContext.Record.LoopSound)
+                            Compare.NotEqual(fContext.Record.LoopingSound,oContext.Record.LoopingSound)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.OpenSound,wContext.Record.OpenSound,oContext.Record.OpenSound)) {
+                                if (Utility.ShouldChange(fContext.Record.LoopingSound,wContext.Record.LoopingSound,oContext.Record.LoopingSound)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.OpenSound.SetTo(fContext.Record.OpenSound);
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.CloseSound,wContext.Record.CloseSound,oContext.Record.CloseSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.CloseSound.SetTo(fContext.Record.CloseSound);
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.LoopSound,wContext.Record.LoopSound,oContext.Record.LoopSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.LoopSound.SetTo(fContext.Record.LoopSound);
+                                    overrideObject.LoopingSound.SetTo(fContext.Record.LoopingSound);
                                 }
                             }
                             mapped.SetMapped();

@@ -4,8 +4,6 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.Plugins.Cache;
-using Noggog;
 
 namespace Fusion
 {    
@@ -14,7 +12,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList("Relev,Delev,ObjectBounds");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Relev, Tags.Delev, Tags.ObjectBounds);
             HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ILeveledSpellGetter>(state, workingModList);
             Utility.RecordCountMessage(affectedFormKeys.Count, "Leveled Spell");
 
@@ -29,66 +27,57 @@ namespace Fusion
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
-                var workingContext = allContexts[0];
-                var originalObject = allContexts[^1];
+                var wContext = allContexts[0];
+                var oContext = allContexts[^1];
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
                 ILeveledSpell? overrideObject = null;
-                MappedTags mapped = new MappedTags();
-                Leveled NewList = new(workingContext.Record.Entries);
+                MappedTags mapped = new();
+                Leveled NewList = new(wContext.Record.Entries);
 
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext)
+                foreach(var fContext in modContext)
                 {
                     //==============================================================================================================
                     // Object Bounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("ObjectBounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.ObjectBounds, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.ObjectBounds,workingContext.Record.ObjectBounds)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                        overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
+                        if (
+                            Compare.NotEqual(fContext.Record.ObjectBounds,oContext.Record.ObjectBounds)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.ObjectBounds,wContext.Record.ObjectBounds,oContext.Record.ObjectBounds)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.ObjectBounds.DeepCopyIn(fContext.Record.ObjectBounds);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Leveled List Adds
                     //==============================================================================================================
-                    if (Settings.TagList("Relev").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Entries,originalObject.Record.Entries))
-                            NewList.Add(foundContext.Record.Entries);
+                    if (Settings.TagList(Tags.Relev).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
+                            NewList.Add(fContext.Record.Entries);
                 }
 
                 //==============================================================================================================
                 // Reverse Mod Lookup (Removes)
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Reverse())
+                foreach(var fContext in modContext.Reverse())
                 {
                     //==============================================================================================================
                     // Leveled List Removes
                     //==============================================================================================================
-                    if (Settings.TagList("Delev").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Entries,originalObject.Record.Entries))
-                            NewList.Remove(foundContext.Record.Entries, originalObject.Record.Entries);
+                    if (Settings.TagList(Tags.Delev).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
+                            NewList.Remove(fContext.Record.Entries, oContext.Record.Entries);
                 }
 
                 //==============================================================================================================
@@ -96,7 +85,7 @@ namespace Fusion
                 //==============================================================================================================
                 if (NewList.Modified)
                 {
-                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
                     addedRecord.Entries = NewList.OverrideSpellObject;
                 }
             }

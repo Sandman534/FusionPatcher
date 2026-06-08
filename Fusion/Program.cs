@@ -32,24 +32,43 @@ namespace Fusion
             AMMO.Patch(state, NewSettings);
             ARMO.Patch(state, NewSettings);
             ARMA.Patch(state, NewSettings);
+            ARTO.Patch(state, NewSettings);
+            ASPC.Patch(state, NewSettings);
             BOOK.Patch(state, NewSettings);
             CELL.Patch(state, NewSettings);
             CONT.Patch(state, NewSettings);
+            EFSH.Patch(state, NewSettings);
+            ENCH.Patch(state, NewSettings);
+            EXPL.Patch(state, NewSettings);
+            EYES.Patch(state, NewSettings);
             FACT.Patch(state, NewSettings);
             FLOR.Patch(state, NewSettings);
+            FURN.Patch(state, NewSettings);
             GRAS.Patch(state, NewSettings);
+            HAZD.Patch(state, NewSettings);
             INGR.Patch(state, NewSettings);
+            IPCT.Patch(state, NewSettings);
             LCTN.Patch(state, NewSettings);
             LVLI.Patch(state, NewSettings);
             LVLN.Patch(state, NewSettings);
             LVSP.Patch(state, NewSettings);
+            MISC.Patch(state, NewSettings);
+            MGEF.Patch(state, NewSettings);
+            MSTT.Patch(state, NewSettings);
             NPC_.Patch(state, NewSettings);
+            OTFT.Patch(state, NewSettings);
             PERK.Patch(state, NewSettings);
             QUST.Patch(state, NewSettings);
+            RACE.Patch(state, NewSettings);
             REFR.Patch(state, NewSettings);
             SCRL.Patch(state, NewSettings);
             SLGM.Patch(state, NewSettings);
+            SPEL.Patch(state, NewSettings);
+            STAT.Patch(state, NewSettings);
+            TREE.Patch(state, NewSettings);
+            TXST.Patch(state, NewSettings);
             WEAP.Patch(state, NewSettings);
+            WTHR.Patch(state, NewSettings);
         }
     }
 }

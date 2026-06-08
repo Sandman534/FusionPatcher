@@ -7,14 +7,14 @@ using Mutagen.Bethesda.Synthesis;
 
 namespace Fusion
 {
-    internal class LVLI
+    internal class FLST
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Relev, Tags.Delev, Tags.ObjectBounds);
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Deflst);
             HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ILeveledItemGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Leveled Item");
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Form List");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)

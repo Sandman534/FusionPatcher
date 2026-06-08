@@ -4,7 +4,6 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.Strings;
 using Noggog;
 
 namespace Fusion
@@ -14,7 +13,8 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList("Destructible,Enchantments,Graphics,Keywords,Names,ObjectBounds,Sound,Stats,Text");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Enchantments, Tags.Graphics, Tags.Keywords, Tags.Names, Tags.ObjectBounds, 
+                Tags.Sound, Tags.Stats, Tags.Text);
             HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IWeaponGetter>(state, workingModList);
             Utility.RecordCountMessage(affectedFormKeys.Count, "Weapon");
 
@@ -29,334 +29,295 @@ namespace Fusion
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
-                var workingContext = allContexts[0];
-                var originalObject = allContexts[^1];
+                var wContext = allContexts[0];
+                var oContext = allContexts[^1];
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
                 IWeapon? overrideObject = null;
-                MappedTags mapped = new MappedTags();
-                Keywords NewKeywords = new(workingContext.Record.Keywords);
+                MappedTags mapped = new();
+                Keywords NewKeywords = new(wContext.Record.Keywords);
 
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext)
+                foreach(var fContext in modContext)
                 {
                     //==============================================================================================================
                     // Destructible
                     //==============================================================================================================
-                    if (mapped.NotMapped("Destructible") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Destructible, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.Destructible,workingContext.Record.Destructible)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Destructible,originalObject.Record.Destructible))
-                                        overrideObject.Destructible = foundContext.Record.Destructible?.DeepCopy();
+                        if (
+                            Compare.NotEqual(fContext.Record.Destructible,oContext.Record.Destructible)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.Destructible,wContext.Record.Destructible,oContext.Record.Destructible)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Destructible = fContext.Record.Destructible?.DeepCopy();
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Enchantments
                     //==============================================================================================================
-                    if (mapped.NotMapped("Enchantments") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Enchantments, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.ObjectEffect,originalObject.Record.ObjectEffect))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.ObjectEffect,workingContext.Record.ObjectEffect)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.ObjectEffect,originalObject.Record.ObjectEffect))
-                                        overrideObject.ObjectEffect.SetTo(foundContext.Record.ObjectEffect);
+                        if (
+                            Compare.NotEqual(fContext.Record.ObjectEffect,oContext.Record.ObjectEffect)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.ObjectEffect,wContext.Record.ObjectEffect,oContext.Record.ObjectEffect)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.ObjectEffect.SetTo(fContext.Record.ObjectEffect);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Graphics
-                    //==============================================================================================================
-                    if (mapped.NotMapped("Graphics") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    //==============================================================================================================                    
+                    if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model)
-                            || Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons)
-                            || Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else {
-                                if (Compare.NotEqual(foundContext.Record.Model,workingContext.Record.Model)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.Icons,workingContext.Record.Icons)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.FirstPersonModel,workingContext.Record.FirstPersonModel)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (foundContext.Record.Model != null && Compare.NotEqual(foundContext.Record.Model,originalObject.Record.Model))
-                                        overrideObject.Model?.DeepCopyIn(foundContext.Record.Model);
-                                    if (foundContext.Record.Icons != null && Compare.NotEqual(foundContext.Record.Icons,originalObject.Record.Icons))
-                                        overrideObject.Icons?.DeepCopyIn(foundContext.Record.Icons);
-                                    if (foundContext.Record.FirstPersonModel != null && Compare.NotEqual(foundContext.Record.FirstPersonModel,originalObject.Record.FirstPersonModel))
-                                        overrideObject.FirstPersonModel?.SetTo(foundContext.Record.FirstPersonModel);
+                        if (
+                            Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
+                            || Compare.NotEqual(fContext.Record.Icons,oContext.Record.Icons)
+                            || Compare.NotEqual(fContext.Record.FirstPersonModel,oContext.Record.FirstPersonModel)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Model?.DeepCopyIn(fContext.Record.Model);
                                 }
-                                mapped.SetMapped();
+
+                                if (Utility.ShouldChangeNull(fContext.Record.Icons,wContext.Record.Icons,oContext.Record.Icons)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Icons?.DeepCopyIn(fContext.Record.Icons);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.FirstPersonModel,wContext.Record.FirstPersonModel,oContext.Record.FirstPersonModel)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.FirstPersonModel?.SetTo(fContext.Record.FirstPersonModel);
+                                }
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Names
                     //==============================================================================================================
-                    if (mapped.NotMapped("Names") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Names, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
+                        if (
+                            Compare.NotEqual(fContext.Record.Name,oContext.Record.Name)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.Name,wContext.Record.Name,oContext.Record.Name)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Name = Utility.NewString(fContext.Record.Name);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Object Bounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("ObjectBounds") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.ObjectBounds, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.ObjectBounds,workingContext.Record.ObjectBounds)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.ObjectBounds,originalObject.Record.ObjectBounds))
-                                        overrideObject.ObjectBounds.DeepCopyIn(foundContext.Record.ObjectBounds);
+                        if (
+                            Compare.NotEqual(fContext.Record.ObjectBounds,oContext.Record.ObjectBounds)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.ObjectBounds,wContext.Record.ObjectBounds,oContext.Record.ObjectBounds)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.ObjectBounds.DeepCopyIn(fContext.Record.ObjectBounds);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Sounds
                     //==============================================================================================================
-                    if (mapped.NotMapped("Sound") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Sound, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.AttackSound,originalObject.Record.AttackSound)
-                            || Compare.NotEqual(foundContext.Record.AttackSound2D,originalObject.Record.AttackSound2D)
-                            || Compare.NotEqual(foundContext.Record.AttackLoopSound,originalObject.Record.AttackLoopSound)
-                            || Compare.NotEqual(foundContext.Record.AttackFailSound,originalObject.Record.AttackFailSound)
-                            || Compare.NotEqual(foundContext.Record.IdleSound,originalObject.Record.IdleSound)
-                            || Compare.NotEqual(foundContext.Record.EquipSound,originalObject.Record.EquipSound)
-                            || Compare.NotEqual(foundContext.Record.UnequipSound,originalObject.Record.UnequipSound)
-                            || Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound)
-                            || Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound)
-                            || Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.AttackSound,workingContext.Record.AttackSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.AttackSound2D,workingContext.Record.AttackSound2D)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.AttackLoopSound,workingContext.Record.AttackLoopSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.AttackFailSound,workingContext.Record.AttackFailSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.IdleSound,workingContext.Record.IdleSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.EquipSound,workingContext.Record.EquipSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.UnequipSound,workingContext.Record.UnequipSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.PickUpSound,workingContext.Record.PickUpSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.PutDownSound,workingContext.Record.PutDownSound)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,workingContext.Record.DetectionSoundLevel)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.AttackSound,originalObject.Record.AttackSound))
-                                        overrideObject.AttackSound.SetTo(foundContext.Record.AttackSound);
-                                    if (Compare.NotEqual(foundContext.Record.AttackSound2D,originalObject.Record.AttackSound2D))
-                                        overrideObject.AttackSound2D.SetTo(foundContext.Record.AttackSound2D);
-                                    if (Compare.NotEqual(foundContext.Record.AttackLoopSound,originalObject.Record.AttackLoopSound))
-                                        overrideObject.AttackLoopSound.SetTo(foundContext.Record.AttackLoopSound);
-                                    if (Compare.NotEqual(foundContext.Record.AttackFailSound,originalObject.Record.AttackFailSound))
-                                        overrideObject.AttackFailSound.SetTo(foundContext.Record.AttackFailSound);
-                                    if (Compare.NotEqual(foundContext.Record.IdleSound,originalObject.Record.IdleSound))
-                                        overrideObject.IdleSound.SetTo(foundContext.Record.IdleSound);
-                                    if (Compare.NotEqual(foundContext.Record.EquipSound,originalObject.Record.EquipSound))
-                                        overrideObject.EquipSound.SetTo(foundContext.Record.EquipSound);
-                                    if (Compare.NotEqual(foundContext.Record.UnequipSound,originalObject.Record.UnequipSound))
-                                        overrideObject.UnequipSound.SetTo(foundContext.Record.UnequipSound);
-                                    if (Compare.NotEqual(foundContext.Record.PickUpSound,originalObject.Record.PickUpSound))
-                                        overrideObject.PickUpSound.SetTo(foundContext.Record.PickUpSound);
-                                    if (Compare.NotEqual(foundContext.Record.PutDownSound,originalObject.Record.PutDownSound))
-                                        overrideObject.PutDownSound.SetTo(foundContext.Record.PutDownSound);
-                                    if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
-                                        overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
+                        if (
+                            Compare.NotEqual(fContext.Record.AttackSound,oContext.Record.AttackSound)
+                            || Compare.NotEqual(fContext.Record.AttackSound2D,oContext.Record.AttackSound2D)
+                            || Compare.NotEqual(fContext.Record.AttackLoopSound,oContext.Record.AttackLoopSound)
+                            || Compare.NotEqual(fContext.Record.AttackFailSound,oContext.Record.AttackFailSound)
+                            || Compare.NotEqual(fContext.Record.IdleSound,oContext.Record.IdleSound)
+                            || Compare.NotEqual(fContext.Record.EquipSound,oContext.Record.EquipSound)
+                            || Compare.NotEqual(fContext.Record.UnequipSound,oContext.Record.UnequipSound)
+                            || Compare.NotEqual(fContext.Record.PickUpSound,oContext.Record.PickUpSound)
+                            || Compare.NotEqual(fContext.Record.PutDownSound,oContext.Record.PutDownSound)
+                            || Compare.NotEqual(fContext.Record.DetectionSoundLevel,oContext.Record.DetectionSoundLevel)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.AttackSound,wContext.Record.AttackSound,oContext.Record.AttackSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.AttackSound.SetTo(fContext.Record.AttackSound);
                                 }
-                                mapped.SetMapped();
+
+                                if (Utility.ShouldChange(fContext.Record.AttackSound2D,wContext.Record.AttackSound2D,oContext.Record.AttackSound2D)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.AttackSound2D.SetTo(fContext.Record.AttackSound2D);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.AttackLoopSound,wContext.Record.AttackLoopSound,oContext.Record.AttackLoopSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.AttackLoopSound.SetTo(fContext.Record.AttackLoopSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.AttackFailSound,wContext.Record.AttackFailSound,oContext.Record.AttackFailSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.AttackFailSound.SetTo(fContext.Record.AttackFailSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.IdleSound,wContext.Record.IdleSound,oContext.Record.IdleSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.IdleSound.SetTo(fContext.Record.IdleSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.EquipSound,wContext.Record.EquipSound,oContext.Record.EquipSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.EquipSound.SetTo(fContext.Record.EquipSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.UnequipSound,wContext.Record.UnequipSound,oContext.Record.UnequipSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.UnequipSound.SetTo(fContext.Record.UnequipSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.PickUpSound,wContext.Record.PickUpSound,oContext.Record.PickUpSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.PickUpSound.SetTo(fContext.Record.PickUpSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.PutDownSound,wContext.Record.PutDownSound,oContext.Record.PutDownSound)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.PutDownSound.SetTo(fContext.Record.PutDownSound);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.DetectionSoundLevel,wContext.Record.DetectionSoundLevel,oContext.Record.DetectionSoundLevel)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.DetectionSoundLevel = fContext.Record.DetectionSoundLevel;
+                                }
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Stats
                     //==============================================================================================================
-                    if (mapped.NotMapped("Stats") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Stats, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID)
-                            || Compare.NotEqual(foundContext.Record.Data,originalObject.Record.Data)
-                            || Compare.NotEqual(foundContext.Record.Critical,originalObject.Record.Critical)
-                            || Compare.NotEqual(foundContext.Record.BasicStats,originalObject.Record.BasicStats)
-                            || Compare.NotEqual(foundContext.Record.ImpactDataSet,originalObject.Record.ImpactDataSet)
-                            || Compare.NotEqual(foundContext.Record.AlternateBlockMaterial,originalObject.Record.AlternateBlockMaterial)
-                            || Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.EditorID,workingContext.Record.EditorID)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.Data,workingContext.Record.Data)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.Critical,workingContext.Record.Critical)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.BasicStats,workingContext.Record.BasicStats)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.ImpactDataSet,workingContext.Record.ImpactDataSet)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.AlternateBlockMaterial,workingContext.Record.AlternateBlockMaterial)) Change = true;
-                                if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,workingContext.Record.DetectionSoundLevel)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.EditorID,originalObject.Record.EditorID))
-                                        overrideObject.EditorID = foundContext.Record.EditorID;
-                                    if (Compare.NotEqual(foundContext.Record.Data,originalObject.Record.Data))
-                                        overrideObject.Data = foundContext.Record.Data?.DeepCopy();
-                                    if (Compare.NotEqual(foundContext.Record.Critical,originalObject.Record.Critical))
-                                        overrideObject.Critical = foundContext.Record.Critical?.DeepCopy();
-                                    if (Compare.NotEqual(foundContext.Record.BasicStats,originalObject.Record.BasicStats))
-                                        overrideObject.BasicStats = foundContext.Record.BasicStats?.DeepCopy();
-                                    if (Compare.NotEqual(foundContext.Record.ImpactDataSet,originalObject.Record.ImpactDataSet))
-                                        overrideObject.ImpactDataSet.SetTo(foundContext.Record.ImpactDataSet);
-                                    if (Compare.NotEqual(foundContext.Record.AlternateBlockMaterial,originalObject.Record.AlternateBlockMaterial))
-                                        overrideObject.AlternateBlockMaterial.SetTo(foundContext.Record.AlternateBlockMaterial);
-                                    if (Compare.NotEqual(foundContext.Record.DetectionSoundLevel,originalObject.Record.DetectionSoundLevel))
-                                        overrideObject.DetectionSoundLevel = foundContext.Record.DetectionSoundLevel;
+                        if (
+                            Compare.NotEqual(fContext.Record.EditorID,oContext.Record.EditorID)
+                            || Compare.NotEqual(fContext.Record.Data,oContext.Record.Data)
+                            || Compare.NotEqual(fContext.Record.Critical,oContext.Record.Critical)
+                            || Compare.NotEqual(fContext.Record.BasicStats,oContext.Record.BasicStats)
+                            || Compare.NotEqual(fContext.Record.ImpactDataSet,oContext.Record.ImpactDataSet)
+                            || Compare.NotEqual(fContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)
+                            || Compare.NotEqual(fContext.Record.DetectionSoundLevel,oContext.Record.DetectionSoundLevel)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.EditorID,wContext.Record.EditorID,oContext.Record.EditorID)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.EditorID = fContext.Record.EditorID;
                                 }
-                                mapped.SetMapped();
+
+                                if (Utility.ShouldChange(fContext.Record.Data,wContext.Record.Data,oContext.Record.Data)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Data = fContext.Record.Data?.DeepCopy();
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.Critical,wContext.Record.Critical,oContext.Record.Critical)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Critical = fContext.Record.Critical?.DeepCopy();
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.BasicStats,wContext.Record.BasicStats,oContext.Record.BasicStats)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.BasicStats = fContext.Record.BasicStats?.DeepCopy();
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.ImpactDataSet,wContext.Record.ImpactDataSet,oContext.Record.ImpactDataSet)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.ImpactDataSet.SetTo(fContext.Record.ImpactDataSet);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.AlternateBlockMaterial,wContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.AlternateBlockMaterial.SetTo(fContext.Record.AlternateBlockMaterial);
+                                }
+
+                                if (Utility.ShouldChange(fContext.Record.DetectionSoundLevel,wContext.Record.DetectionSoundLevel,oContext.Record.DetectionSoundLevel)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.DetectionSoundLevel = fContext.Record.DetectionSoundLevel;
+                                }
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Text
                     //==============================================================================================================
-                    if (mapped.NotMapped("Text") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Text, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.Description,workingContext.Record.Description)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Description,originalObject.Record.Description))
-                                        overrideObject.Description = Utility.NewString(foundContext.Record.Description);
+                        if (
+                            Compare.NotEqual(fContext.Record.Description,oContext.Record.Description)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.Description,wContext.Record.Description,oContext.Record.Description)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Description = Utility.NewString(fContext.Record.Description);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Keyword Adds
                     //==============================================================================================================
-                    if (Settings.TagList("Keywords").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Keywords,originalObject.Record.Keywords))
-                                NewKeywords.Add(foundContext.Record.Keywords, originalObject.Record.Keywords);
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
+                        if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
+                                NewKeywords.Add(fContext.Record.Keywords, oContext.Record.Keywords);
                 }    
 
                 //==============================================================================================================
                 // Reverse Mod Lookup (Removes)
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Reverse())
+                foreach(var fContext in modContext.Reverse())
                 {
                     //==============================================================================================================
                     // Keyword Removes
                     //==============================================================================================================
-                    if (Settings.TagList("Keywords").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Keywords,originalObject.Record.Keywords))
-                            NewKeywords.Remove(foundContext.Record.Keywords, originalObject.Record.Keywords);
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
+                        if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
+                            NewKeywords.Remove(fContext.Record.Keywords, oContext.Record.Keywords);
                 }
 
                 //==============================================================================================================
                 // Finalize
                 //==============================================================================================================
-                if (NewKeywords.Modified) 
+                if (NewKeywords.Modified)
                 {
-                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
                     addedRecord.Keywords = NewKeywords.OverrideObject;
                 }
-                
-
             }
         }
     }

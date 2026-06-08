@@ -6,6 +6,7 @@ using Noggog;
 using Newtonsoft.Json;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
+using YamlDotNet.Core.Tokens;
 
 namespace Fusion
 {
@@ -56,11 +57,11 @@ namespace Fusion
         [SettingName("Names")]
         public List<ModKey> settingsNames = new();
 
-        //[SettingName("Outfits")]
-        //public List<ModKey> settingsOutfits = new List<ModKey>();
+        [SettingName("Outfits")]
+        public List<ModKey> settingsOutfits = new List<ModKey>();
 
-        //[SettingName("Race")]
-        //public List<ModKey> settingsRace = new List<ModKey>();
+        [SettingName("Race")]
+        public List<ModKey> settingsRace = new List<ModKey>();
 
         [SettingName("References")]
         public List<ModKey> settingsRefs = new();
@@ -141,10 +142,10 @@ namespace Fusion
         public List<ModKey> actorACBS = new();
         [SettingName("AI Data")]
         public List<ModKey> actorAIData = new();
+        [SettingName("AI Packages")]
+        public List<ModKey> actorAIPackages = new();
         [SettingName("AI Package Overrides")]
         public List<ModKey> actorAIPackageOverride = new();
-        [SettingName("AI Packages Overrides")]
-        public List<ModKey> actorAIPackages = new();
         [SettingName("AttackRace")]
         public List<ModKey> actorAttackRace = new();
         [SettingName("Class")]
@@ -198,15 +199,17 @@ namespace Fusion
             LootTags = new();
         }
 
-        public HashSet<ModKey> GetModList(string BashTags)
+        public HashSet<ModKey> GetModList(params string[] bashTags)
         {
-            List<ModKey> ModList = new();
-            string[] TagList = BashTags.Split(",");
-            foreach(var ts in AllSettings)
-                if (TagList.Any(ts.BashTag.Contains))
-                    ModList.Add(ts.Key);
+            HashSet<ModKey> modList = [];
 
-            return new HashSet<ModKey>(ModList);
+            foreach (var ts in AllSettings)
+            {
+                if (bashTags.Any(ts.BashTag.Contains))
+                    modList.Add(ts.Key);
+            }
+
+            return modList;
         }
 
         public List<string> GetLootList(string FileName)
@@ -267,12 +270,11 @@ namespace Fusion
             return ModList.Count;
         }
 
-        private void ProcessUserSetting(List<ModKey> ModKeys, string BashTags)
+        private void ProcessUserSetting(List<ModKey> ModKeys, params string[] bashTags)
         {
             foreach (var key in ModKeys)
             {
-                string[] tags = BashTags.Split(',');
-                foreach(var tag in tags)
+                foreach(var tag in bashTags)
                     if (!AllSettings.Where(x => x.BashTag.Equals(tag) && x.Key.Equals(key)).Any())
                         AllSettings.Add(new TagSetting(tag, key));
             }
@@ -283,44 +285,44 @@ namespace Fusion
             // Fix Legacy Tags
             List<string> FixedTagList = new();
             if (pBashTag == "Factions")
-                FixedTagList.Add("Actors.Factions");
+                FixedTagList.Add(Tags.Actors_Factions);
             else if (pBashTag == "NpcFaces")
-                FixedTagList.Add("NpcFacesForceFullImport");
+                FixedTagList.Add(Tags.NpcFacesForceFullImport);
             else if (pBashTag == "Invent" || pBashTag == "InventOnly")
             {
-                FixedTagList.Add("Invent.Add");
-                FixedTagList.Add("Invent.Change");
-                FixedTagList.Add("Invent.Remove");
+                FixedTagList.Add(Tags.Invent_Add);
+                FixedTagList.Add(Tags.Invent_Change);
+                FixedTagList.Add(Tags.Invent_Remove);
             }
             else if (pBashTag == "Body-F")
-                FixedTagList.Add("R.Body-F");
+                FixedTagList.Add(Tags.R_Body_F);
             else if (pBashTag == "Body-M")
-                FixedTagList.Add("R.Body-M");
+                FixedTagList.Add(Tags.R_Body_M);
             else if (pBashTag == "Body-Size-F")
-                FixedTagList.Add("Body-Size-F");
+                FixedTagList.Add(Tags.R_Body_Size_F);
             else if (pBashTag == "Body-Size-M")
-                FixedTagList.Add("Body-Size-M");
+                FixedTagList.Add(Tags.R_Body_Size_M);
             else if (pBashTag == "Eyes" || pBashTag == "Eyes-D" || pBashTag == "Eyes-E" || pBashTag == "Eyes-R")
-                FixedTagList.Add("R.Eyes");
+                FixedTagList.Add(Tags.R_Eyes);
             else if (pBashTag == "Hair")
-                FixedTagList.Add("R.Hair");
+                FixedTagList.Add(Tags.R_Hair);
             else if (pBashTag == "Voice-F")
-                FixedTagList.Add("R.Voice-F");
+                FixedTagList.Add(Tags.R_Voice_F);
             else if (pBashTag == "Voice-M")
-                FixedTagList.Add("R.Voice-M");
+                FixedTagList.Add(Tags.R_Voice_M);
             else if (pBashTag == "R.Relations")
             {
-                FixedTagList.Add("R.Relations.Add");
-                FixedTagList.Add("R.Relations.Change");
-                FixedTagList.Add("R.Relations.Remove");
+                FixedTagList.Add(Tags.R_Relations_Add);
+                FixedTagList.Add(Tags.R_Relations_Change);
+                FixedTagList.Add(Tags.R_Relations_Remove);
             }
             else if (pBashTag == "Relations")
             {
-                FixedTagList.Add("Relations.Add");
-                FixedTagList.Add("Relations.Change");
+                FixedTagList.Add(Tags.Relations_Add);
+                FixedTagList.Add(Tags.Relations_Change);
             }
             else if (pBashTag == "Derel")
-                FixedTagList.Add("Relations.Remove");
+                FixedTagList.Add(Tags.Relations_Remove);
             else
                 FixedTagList.Add(pBashTag);
 
@@ -413,72 +415,74 @@ namespace Fusion
             // Process Cell Settings
             foreach(var setting in UserSettings.granularCells)
             {
-                ProcessUserSetting(setting.cellAcoustic,"C.Acoustic");
-                ProcessUserSetting(setting.cellClimate,"C.Climate");
-                ProcessUserSetting(setting.cellEncounter,"C.Encounter");
-                ProcessUserSetting(setting.cellImageSpace,"C.ImageSpace");
-                ProcessUserSetting(setting.cellLight,"C.Light");
-                ProcessUserSetting(setting.cellLockList,"C.LockList");
-                ProcessUserSetting(setting.cellLocation,"C.Location");
-                ProcessUserSetting(setting.cellMiscFlags,"C.MiscFlags");
-                ProcessUserSetting(setting.cellMusic,"C.Music");
-                ProcessUserSetting(setting.cellName,"C.Name");
-                ProcessUserSetting(setting.cellOwner,"C.Owner");
-                ProcessUserSetting(setting.cellRecordFlags,"C.RecordFlags");
-                ProcessUserSetting(setting.cellRegions,"C.Regions");
-                ProcessUserSetting(setting.cellSkyLighting,"C.SkyLighting");
-                ProcessUserSetting(setting.cellWater,"C.Water");
+                ProcessUserSetting(setting.cellAcoustic,Tags.C_Acoustic);
+                ProcessUserSetting(setting.cellClimate,Tags.C_Climate);
+                ProcessUserSetting(setting.cellEncounter,Tags.C_Encounter);
+                ProcessUserSetting(setting.cellImageSpace,Tags.C_ImageSpace);
+                ProcessUserSetting(setting.cellLight,Tags.C_Light);
+                ProcessUserSetting(setting.cellLockList,Tags.C_LockList);
+                ProcessUserSetting(setting.cellLocation,Tags.C_Location);
+                ProcessUserSetting(setting.cellMiscFlags,Tags.C_MiscFlags);
+                ProcessUserSetting(setting.cellMusic,Tags.C_Music);
+                ProcessUserSetting(setting.cellName,Tags.C_Name);
+                ProcessUserSetting(setting.cellOwner,Tags.C_Owner);
+                ProcessUserSetting(setting.cellRecordFlags,Tags.C_RecordFlags);
+                ProcessUserSetting(setting.cellRegions,Tags.C_Regions);
+                ProcessUserSetting(setting.cellSkyLighting,Tags.C_SkyLighting);
+                ProcessUserSetting(setting.cellWater,Tags.C_Water);
             }
 
             // Process Actor Settings
             foreach (var setting in UserSettings.granularActors)
             {
-                ProcessUserSetting(setting.actorACBS,"Actors.ACBS");
-                ProcessUserSetting(setting.actorAIData,"Actors.AIData");
-                ProcessUserSetting(setting.actorAIPackageOverride,"NPC.AIPackageOverrides");
-                ProcessUserSetting(setting.actorAIPackages,"NPC.AIPackages");
-                ProcessUserSetting(setting.actorAttackRace,"NPC.AttackRace");
-                ProcessUserSetting(setting.actorClass,"NPC.Class");
-                ProcessUserSetting(setting.actorCombatStyle,"Actors.CombatStyle");
-                ProcessUserSetting(setting.actorCrimeFaction,"NPC.CrimeFaction");
-                ProcessUserSetting(setting.actorDeathItem,"Actors.DeathItem");
-                ProcessUserSetting(setting.actorOutfit,"NPC.DefaultOutfit");
-                ProcessUserSetting(setting.actorFullFace,"NpcFacesForceFullImport");
-                ProcessUserSetting(setting.actorRace,"NPC.Race");
-                ProcessUserSetting(setting.actorVoice,"Actors.Voice");
+                ProcessUserSetting(setting.actorACBS, Tags.Actors_ACBS);
+                ProcessUserSetting(setting.actorAIData, Tags.Actors_AIData);
+                ProcessUserSetting(setting.actorAIPackageOverride, Tags.Actors_AIPackagesForceAdd);
+                ProcessUserSetting(setting.actorAIPackages, Tags.NPC_AIPackageOverrides);
+                ProcessUserSetting(setting.actorAttackRace, Tags.NPC_AttackRace);
+                ProcessUserSetting(setting.actorClass, Tags.NPC_Class);
+                ProcessUserSetting(setting.actorCombatStyle, Tags.Actors_CombatStyle);
+                ProcessUserSetting(setting.actorCrimeFaction, Tags.NPC_CrimeFaction);
+                ProcessUserSetting(setting.actorDeathItem, Tags.Actors_DeathItem);
+                ProcessUserSetting(setting.actorOutfit, Tags.NPC_DefaultOutfit);
+                ProcessUserSetting(setting.actorFullFace, Tags.NpcFacesForceFullImport);
+                ProcessUserSetting(setting.actorRace, Tags.NPC_Race);
+                ProcessUserSetting(setting.actorVoice, Tags.Actors_Voice);
             }
 
             // Process Ref Settings
             foreach (var setting in UserSettings.granularRefs)
             {
-                ProcessUserSetting(setting.refBase, "F.Base");
-                ProcessUserSetting(setting.refEnableParent, "F.EnableParent");
-                ProcessUserSetting(setting.refLocationReference, "F.LocationReference");
+                ProcessUserSetting(setting.refBase, Tags.F_Base);
+                ProcessUserSetting(setting.refEnableParent, Tags.F_EnableParent);
+                ProcessUserSetting(setting.refLocationReference, Tags.F_LocationReference);
             }
 
             // Process Bulk Settings
-            ProcessUserSetting(UserSettings.settingsActors,"Actors.ACBS,Actors.AIData,Actors.AIPackages,Actors.AIPackagesForceAdd,Actors.CombatStyle" +
-                ",Actors.DeathItem,Actors.Factions,Actors.Perks.Add,Actors.Perks.Change,Actors.Perks.Remove,Actors.RecordFlags,Actors.Skeleton" + 
-                ",Actors.Spells,Actors.SpellsForceAdd,Actors.Stats,Actors.Voice,NPC.AIPackageOverrides,NPC.AttackRace,NPC.Class,NPC.CrimeFaction" +
-                ",NPC.DefaultOutfit,NPC.Race,NpcFacesForceFullImport");
-            ProcessUserSetting(UserSettings.settingsCells,"C.Acoustic,C.Climate,C.Encounter,C.ImageSpace,C.Light,C.LockList,C.Location,C.MiscFlags" +
-                ",C.Music,C.Name,C.Owner,C.RecordFlags,C.Regions,C.SkyLighting,C.Water");
-            ProcessUserSetting(UserSettings.settingsDestructibles,"Destructible");
-            ProcessUserSetting(UserSettings.settingsEnchantments,"EffectStats,Enchantments,EnchantmentStats");
-            ProcessUserSetting(UserSettings.settingsGraphics,"Graphics");
-            ProcessUserSetting(UserSettings.settingsInventory,"Invent.Add,Invent.Change,Invent.Remove");
-            ProcessUserSetting(UserSettings.settingsKeywords,"Keywords");
-            ProcessUserSetting(UserSettings.settingsLeveled,"Delev,Relev");
-            ProcessUserSetting(UserSettings.settingsNames,"Names");
-            // ProcessUserSetting(UserSettings.settingsOutfits,"Outfits.Add,Outfits.Remove");
-            // ProcessUserSetting(UserSettings.settingsRace,"R.AddSpells,R.Body-F,R.Body-M,R.Body-Size-F,R.Body-Size-M,R.ChangeSpells,R.Description" +
-            //     ",R.Ears,R.Eyes,R.Hair,R.Head,R.Mouth,R.Skills,R.Teeth,R.Voice-F,R.Voice-M");
-            ProcessUserSetting(UserSettings.settingsRefs, "F.Base,F.EnableParent,F.LocationReference");
-            ProcessUserSetting(UserSettings.settingsRelations,"R.Relations.Add,R.Relations.Change,R.Relations.Remove,Relations.Add,Relations.Change,Relations.Remove");
-            ProcessUserSetting(UserSettings.settingsScripts,"Scripts");
-            ProcessUserSetting(UserSettings.settingsSounds,"Sound");
-            ProcessUserSetting(UserSettings.settingsStats,"ObjectBounds,SpellStats,Stats");
-            ProcessUserSetting(UserSettings.settingsText,"Text");
+            ProcessUserSetting(UserSettings.settingsActors, Tags.Actors_ACBS, Tags.Actors_AIData, Tags.Actors_AIPackages, Tags.Actors_AIPackagesForceAdd,
+                Tags.Actors_CombatStyle, Tags.Actors_DeathItem, Tags.Actors_Factions, Tags.Actors_Perks_Add, Tags.Actors_Perks_Change, Tags.Actors_Perks_Remove,
+                Tags.Actors_RecordFlags, Tags.Actors_Skeleton, Tags.Actors_Spells, Tags.Actors_SpellsForceAdd, Tags.Actors_Stats, Tags.Actors_Voice,
+                Tags.NPC_AIPackageOverrides, Tags.NPC_AttackRace, Tags.NPC_Class, Tags.NPC_Class, Tags.NPC_CrimeFaction, Tags.NPC_DefaultOutfit, Tags.NPC_Race,
+                Tags.NpcFacesForceFullImport);
+            ProcessUserSetting(UserSettings.settingsCells, Tags.C_Acoustic, Tags.C_Climate, Tags.C_Encounter, Tags.C_ImageSpace, Tags.C_Light, Tags.C_LockList,
+                Tags.C_Location, Tags.C_MiscFlags, Tags.C_Music, Tags.C_Name, Tags.C_Owner, Tags.C_RecordFlags, Tags.C_Regions, Tags.C_SkyLighting, Tags.C_Water);
+            ProcessUserSetting(UserSettings.settingsDestructibles, Tags.Destructible);
+            ProcessUserSetting(UserSettings.settingsEnchantments, Tags.EffectStats, Tags.Enchantments, Tags.EnchantmentStats);
+            ProcessUserSetting(UserSettings.settingsGraphics, Tags.Graphics);
+            ProcessUserSetting(UserSettings.settingsInventory, Tags.Invent_Add, Tags.Invent_Change, Tags.Invent_Remove);
+            ProcessUserSetting(UserSettings.settingsKeywords, Tags.Keywords);
+            ProcessUserSetting(UserSettings.settingsLeveled,Tags.Delev, Tags.Relev);
+            ProcessUserSetting(UserSettings.settingsNames,Tags.Names);
+            ProcessUserSetting(UserSettings.settingsOutfits,Tags.Outfits_Add, Tags.Outfits_Remove);
+            ProcessUserSetting(UserSettings.settingsRace, Tags.R_AddSpells, Tags.R_Body_F, Tags.R_Body_M, Tags.R_Body_Size_F, Tags.R_Body_Size_M, Tags.R_ChangeSpells,
+                Tags.R_Description, Tags.R_Ears, Tags.R_Eyes, Tags.R_Hair, Tags.R_Head, Tags.R_Mouth, Tags.R_Skills, Tags.R_Teeth, Tags.R_Voice_F, Tags.R_Voice_M);
+            ProcessUserSetting(UserSettings.settingsRefs, Tags.F_Base, Tags.F_EnableParent, Tags.F_LocationReference);
+            ProcessUserSetting(UserSettings.settingsRelations, Tags.R_Relations_Add, Tags.R_Relations_Change, Tags.R_Relations_Remove, Tags.Relations_Add, 
+                Tags.Relations_Change, Tags.Relations_Remove);
+            ProcessUserSetting(UserSettings.settingsScripts, Tags.Scripts);
+            ProcessUserSetting(UserSettings.settingsSounds, Tags.Sound);
+            ProcessUserSetting(UserSettings.settingsStats, Tags.ObjectBounds, Tags.SpellStats, Tags.Stats);
+            ProcessUserSetting(UserSettings.settingsText, Tags.Text);
         }
 
     }

@@ -8,6 +8,115 @@ using System.Collections.Immutable;
 using System.Drawing;
 using DynamicData.Diagnostics;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Plugins.Cache;
+using System.Diagnostics.CodeAnalysis;
+
+public static class Tags
+{
+    // Actor
+    public const string Actors_ACBS = "Actors.ACBS";
+    public const string Actors_AIData = "Actors.AIData";
+    public const string Actors_AIPackages = "Actors.AIPackages";
+    public const string Actors_AIPackagesForceAdd = "Actors.AIPackagesForceAdd";
+    public const string Actors_CombatStyle = "Actors.CombatStyle";
+    public const string Actors_DeathItem = "Actors.DeathItem";
+    public const string Actors_Factions = "Actors.Factions";
+    public const string Actors_Perks_Add = "Actors.Perks.Add";
+    public const string Actors_Perks_Change = "Actors.Perks.Change";
+    public const string Actors_Perks_Remove = "Actors.Perks.Remove";
+    public const string Actors_RecordFlags = "Actors.RecordFlags";
+    public const string Actors_Skeleton = "Actors.Skeleton";
+    public const string Actors_Spells = "Actors.Spells";
+    public const string Actors_SpellsForceAdd = "Actors.SpellsForceAdd";
+    public const string Actors_Stats = "Actors.Stats";
+    public const string Actors_Voice = "Actors.Voice";
+
+    // NPC
+    public const string NPC_AIPackageOverrides = "NPC.AIPackageOverrides";
+    public const string NPC_AttackRace = "NPC.AttackRace";
+    public const string NPC_Class = "NPC.Class";
+    public const string NPC_CrimeFaction = "NPC.CrimeFaction";
+    public const string NPC_DefaultOutfit = "NPC.DefaultOutfit";
+    public const string NPC_Race = "NPC.Race";
+    public const string NpcFacesForceFullImport = "NpcFacesForceFullImport";
+
+    // Cell
+    public const string C_Acoustic = "C.Acoustic";
+    public const string C_Climate = "C.Climate";
+    public const string C_Encounter = "C.Encounter";
+    public const string C_ImageSpace = "C.ImageSpace";
+    public const string C_Light = "C.Light";
+    public const string C_LockList = "C.LockList";
+    public const string C_Location = "C.Location";
+    public const string C_MiscFlags = "C.MiscFlags";
+    public const string C_Music = "C.Music";
+    public const string C_Name = "C.Name";
+    public const string C_Owner = "C.Owner";
+    public const string C_RecordFlags = "C.RecordFlags";
+    public const string C_Regions = "C.Regions";
+    public const string C_SkyLighting = "C.SkyLighting";
+    public const string C_Water = "C.Water";
+
+    // Forms
+    public const string Destructible = "Destructible";
+    public const string EffectStats = "EffectStats";
+    public const string Enchantments = "Enchantments";
+    public const string EnchantmentStats = "EnchantmentStats";
+    public const string Graphics = "Graphics";
+    public const string Keywords = "Keywords";
+    public const string Names = "Names";
+    public const string ObjectBounds = "ObjectBounds";
+    public const string Scripts = "Scripts";
+    public const string Sound = "Sound";
+    public const string SpellStats = "SpellStats";
+    public const string Stats = "Stats";
+    public const string Text = "Text";
+
+    // Inventory
+    public const string Invent_Add = "Invent.Add";
+    public const string Invent_Change = "Invent.Change";
+    public const string Invent_Remove = "Invent.Remove";
+
+    // Leveled Lists
+    public const string Delev = "Delev";
+    public const string Relev = "Relev";
+    public const string Deflst = "Deflst";
+
+    // Outfits
+    public const string Outfits_Add = "Outfits.Add";
+    public const string Outfits_Remove = "Outfits.Remove";
+
+    // Race
+    public const string R_AddSpells = "R.AddSpells";
+    public const string R_Body_F = "R.Body-F";
+    public const string R_Body_M = "R.Body-M";
+    public const string R_Body_Size_F = "R.Body-Size-F";
+    public const string R_Body_Size_M = "R.Body-Size-M";
+    public const string R_ChangeSpells = "R.ChangeSpells";
+    public const string R_Description = "R.Description";
+    public const string R_Ears = "R.Ears";
+    public const string R_Eyes = "R.Eyes";
+    public const string R_Hair = "R.Hair";
+    public const string R_Head = "R.Head";
+    public const string R_Mouth = "R.Mouth";
+    public const string R_Relations_Add = "R.Relations.Add";
+    public const string R_Relations_Change = "R.Relations.Change";
+    public const string R_Relations_Remove = "R.Relations.Remove";
+    public const string R_Skills = "R.Skills";
+    public const string R_Teeth = "R.Teeth";
+    public const string R_Voice_F = "R.Voice-F";
+    public const string R_Voice_M = "R.Voice-M";
+
+    // References
+    public const string F_Base = "F.Base";
+    public const string F_EnableParent = "F.EnableParent";
+    public const string F_LocationReference = "F.LocationReference";
+
+    // Relationships
+    public const string Relations_Add = "Relations.Add";
+    public const string Relations_Change = "Relations.Change";
+    public const string Relations_Remove = "Relations.Remove";
+}
 
 public class MappedTags 
 {
@@ -16,113 +125,11 @@ public class MappedTags
 
     public MappedTags()
     {
-        // Actor
-        keywordList.Add("Actors.ACBS", false);
-        keywordList.Add("Actors.AIData", false);
-        keywordList.Add("Actors.AIPackages", false);
-        keywordList.Add("Actors.AIPackagesForceAdd", false);
-        keywordList.Add("Actors.CombatStyle", false);
-        keywordList.Add("Actors.DeathItem", false);
-        keywordList.Add("Actors.Factions", false);
-        keywordList.Add("Actors.Perks.Add", false);
-        keywordList.Add("Actors.Perks.Change", false);
-        keywordList.Add("Actors.Perks.Remove", false);
-        keywordList.Add("Actors.RecordFlags", false);
-        keywordList.Add("Actors.Skeleton", false);
-        keywordList.Add("Actors.Spells", false);
-        keywordList.Add("Actors.SpellsForceAdd", false);
-        keywordList.Add("Actors.Stats", false);
-        keywordList.Add("Actors.Voice", false);
-
-        // NPC
-        keywordList.Add("NPC.AIPackageOverrides", false);
-        keywordList.Add("NPC.AttackRace", false);
-        keywordList.Add("NPC.Class", false);
-        keywordList.Add("NPC.CrimeFaction", false);
-        keywordList.Add("NPC.DefaultOutfit", false);
-        keywordList.Add("NPC.Race", false);
-        keywordList.Add("NpcFacesForceFullImport", false);
-
-        // Cell
-        keywordList.Add("C.Acoustic", false);
-        keywordList.Add("C.Climate", false);
-        keywordList.Add("C.Encounter", false);
-        keywordList.Add("C.ImageSpace", false);
-        keywordList.Add("C.Light", false);
-        keywordList.Add("C.LockList", false);
-        keywordList.Add("C.Location", false);
-        keywordList.Add("C.MiscFlags", false);
-        keywordList.Add("C.Music", false);
-        keywordList.Add("C.Name", false);
-        keywordList.Add("C.Owner", false);
-        keywordList.Add("C.RecordFlags", false);
-        keywordList.Add("C.Regions", false);
-        keywordList.Add("C.SkyLighting", false);
-        keywordList.Add("C.Water", false);
-
-        keywordList.Add("Destructible", false);
-        keywordList.Add("EffectStats", false);
-        keywordList.Add("Enchantments", false);
-        keywordList.Add("EnchantmentStats", false);
-        keywordList.Add("Graphics", false);
-
-        // Inventory
-        keywordList.Add("Invent.Add", false);
-        keywordList.Add("Invent.Change", false);
-        keywordList.Add("Invent.Remove", false);
-
-        keywordList.Add("Keywords", false);
-
-        // Leveled List
-        keywordList.Add("Delev", false);
-        keywordList.Add("Relev", false);
-
-        keywordList.Add("Names", false);
-
-        // Outfits
-        keywordList.Add("Outfits.Add", false);
-        keywordList.Add("Outfits.Remove", false);
-
-        // Race
-        keywordList.Add("R.AddSpells", false);
-        keywordList.Add("R.Body-F", false);
-        keywordList.Add("R.Body-M", false);
-        keywordList.Add("R.Body-Size-F", false);
-        keywordList.Add("R.Body-Size-M", false);
-        keywordList.Add("R.ChangeSpells", false);
-        keywordList.Add("R.Description", false);
-        keywordList.Add("R.Ears", false);
-        keywordList.Add("R.Eyes", false);
-        keywordList.Add("R.Hair", false);
-        keywordList.Add("R.Head", false);
-        keywordList.Add("R.Mouth", false);
-        keywordList.Add("R.Skills", false);
-        keywordList.Add("R.Teeth", false);
-        keywordList.Add("R.Voice-F", false);
-        keywordList.Add("R.Voice-M", false);
-
-        // References
-        keywordList.Add("F.Base", false);
-        keywordList.Add("F.EnableParent", false);
-        keywordList.Add("F.LocationReference", false);
-
-        // Relationships
-        keywordList.Add("R.Relations.Add", false);
-        keywordList.Add("R.Relations.Change", false);
-        keywordList.Add("R.Relations.Remove", false);
-        keywordList.Add("Relations.Add", false);
-        keywordList.Add("Relations.Change", false);
-        keywordList.Add("Relations.Remove", false);
-
-        keywordList.Add("Scripts", false);
-        keywordList.Add("Sound", false);
-
-        // Stats
-        keywordList.Add("ObjectBounds", false);
-        keywordList.Add("SpellStats", false);
-        keywordList.Add("Stats", false);
-
-        keywordList.Add("Text", false);
+        foreach (var field in typeof(Tags).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)) {
+            if (field.IsLiteral && field.FieldType == typeof(string)) {
+                keywordList[(string)field.GetRawConstantValue()!] = false;
+            }
+        }
     }
 
     public string GetTag()
@@ -130,10 +137,14 @@ public class MappedTags
         return tag;
     }
 
-    public bool NotMapped(string index)
-    {
-        tag = index;
-        return !keywordList[tag];
+    public void SetTag(string index) 
+    { 
+        tag = index; 
+    }
+
+    public bool NotMapped() 
+    { 
+        return !keywordList[tag]; 
     }
 
     public void SetMapped()
@@ -808,6 +819,26 @@ public class Utility
             Console.WriteLine("Processing {0} {1} Records", iRecordCount, sRecordType);
     }
 
+    public static bool TagCheck(string record, MappedTags mapped, Fusion.SettingsUtility Settings, IModContext found)
+    {
+        mapped.SetTag(record);
+        return mapped.NotMapped() && Settings.TagList(record).Contains(found.ModKey);
+    }
+
+    public static bool CheckContext(IModContext found, IModContext working, IModContext original)
+    {
+        return found.ModKey != working.ModKey && found.ModKey != original.ModKey;
+    }
+
+    public static bool ShouldChange<T>(T FoundRecord, T WorkingRecord, T OriginalRecord)
+    {
+        return Compare.NotEqual(FoundRecord,WorkingRecord) && Compare.NotEqual(FoundRecord,OriginalRecord);
+    }
+
+    public static bool ShouldChangeNull<T>([NotNullWhen(true)] T? FoundRecord, T? WorkingRecord, T? OriginalRecord)
+    {
+        return FoundRecord != null && Compare.NotEqual(FoundRecord,WorkingRecord) && Compare.NotEqual(FoundRecord,OriginalRecord);
+    }   
     public static GenderedItem<T?>? NewGender<T>(T? Male, T? Female)
     {
         if (Male == null && Female == null) return null;
@@ -1351,4 +1382,256 @@ public class Leveled
                 }
     }
 
+}
+
+public class Outfits
+{
+    public ExtendedList<IFormLinkGetter<IOutfitTarget>> OverrideObject {get; set;}
+    public bool Modified;
+
+    public Outfits(IReadOnlyList<IFormLinkGetter<IOutfitTargetGetter>>? WorkingRecord)
+    {
+        OverrideObject = new();
+        Modified = false;
+
+        if (WorkingRecord != null)
+            foreach (var rec in WorkingRecord) 
+                OverrideObject.Add(rec.FormKey);        
+    }
+   
+    public void Add(IReadOnlyList<IFormLinkGetter<IOutfitTargetGetter>>? FoundObject)
+    {
+        if (FoundObject != null && FoundObject.Count > 0)
+            foreach (var rec in FoundObject)
+                if (!OverrideObject.Where(x => x.FormKey == rec.FormKey).Any())
+                {
+                    OverrideObject.Add(rec.FormKey);
+                    Modified = true;
+                }
+    }
+    
+    public void Remove(IReadOnlyList<IFormLinkGetter<IOutfitTargetGetter>>? FoundObject, IReadOnlyList<IFormLinkGetter<IOutfitTargetGetter>>? OriginalObject)
+    {
+        if (FoundObject != null && FoundObject.Count > 0)
+            // Remove Items
+            if (OriginalObject != null && OriginalObject.Count > 0)
+                foreach (var rec in OriginalObject)
+                    if (!FoundObject.Where(x => x.FormKey == rec.FormKey).Any())
+                    {
+                        var oFoundRec = OverrideObject.Where(x => x.FormKey == rec.FormKey);
+                        if (oFoundRec.Any())
+                        {
+                            OverrideObject.Remove(oFoundRec.First());
+                            Modified = true;
+                        }
+                    }
+    }
+}
+
+public class EffectShaders
+{
+    public static bool DATACheck(IEffectShaderGetter lhs, IEffectShaderGetter rhs)
+    {
+        if (Compare.NotEqual(lhs.MembraneSourceBlendMode, rhs.MembraneSourceBlendMode)) return false;
+        if (Compare.NotEqual(lhs.MembraneBlendOperation, rhs.MembraneBlendOperation)) return false;
+        if (Compare.NotEqual(lhs.MembraneZTest, rhs.MembraneZTest)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey1, rhs.FillColorKey1)) return false;
+        if (Compare.NotEqual(lhs.FillAlphaFadeInTime, rhs.FillAlphaFadeInTime)) return false;
+        if (Compare.NotEqual(lhs.FillFullAlphaTime, rhs.FillFullAlphaTime)) return false;
+        if (Compare.NotEqual(lhs.FillFadeOutTime, rhs.FillFadeOutTime)) return false;
+        if (Compare.NotEqual(lhs.FillPersistentAlphaRatio, rhs.FillPersistentAlphaRatio)) return false;
+        if (Compare.NotEqual(lhs.FillAlphaPulseAmplitude, rhs.FillAlphaPulseAmplitude)) return false;
+        if (Compare.NotEqual(lhs.FillAlphaPulseFrequency, rhs.FillAlphaPulseFrequency)) return false;
+        if (Compare.NotEqual(lhs.FillTextureAnimationSpeedU, rhs.FillTextureAnimationSpeedU)) return false;
+        if (Compare.NotEqual(lhs.FillTextureAnimationSpeedV, rhs.FillTextureAnimationSpeedV)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectFallOff, rhs.EdgeEffectFallOff)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectColor, rhs.EdgeEffectColor)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectAlphaFadeInTime, rhs.EdgeEffectAlphaFadeInTime)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectFullAlphaTime, rhs.EdgeEffectFullAlphaTime)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectAlphaFadeOutTime, rhs.EdgeEffectAlphaFadeOutTime)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectPersistentAlphaRatio, rhs.EdgeEffectPersistentAlphaRatio)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectAlphaPulseAmplitude, rhs.EdgeEffectAlphaPulseAmplitude)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectAlphaPulseFrequency, rhs.EdgeEffectAlphaPulseFrequency)) return false;
+        if (Compare.NotEqual(lhs.FillFullAlphaRatio, rhs.FillFullAlphaRatio)) return false;
+        if (Compare.NotEqual(lhs.EdgeEffectFullAlphaRatio, rhs.EdgeEffectFullAlphaRatio)) return false;
+        if (Compare.NotEqual(lhs.MembraneDestBlendMode, rhs.MembraneDestBlendMode)) return false;
+        if (Compare.NotEqual(lhs.ParticleSourceBlendMode, rhs.ParticleSourceBlendMode)) return false;
+        if (Compare.NotEqual(lhs.ParticleBlendOperation, rhs.ParticleBlendOperation)) return false;
+        if (Compare.NotEqual(lhs.ParticleZTest, rhs.ParticleZTest)) return false;
+        if (Compare.NotEqual(lhs.ParticleDestBlendMode, rhs.ParticleDestBlendMode)) return false;
+        if (Compare.NotEqual(lhs.ParticleBirthRampUpTime, rhs.ParticleBirthRampUpTime)) return false;
+        if (Compare.NotEqual(lhs.ParticleFullBirthTime, rhs.ParticleFullBirthTime)) return false;
+        if (Compare.NotEqual(lhs.ParticleBirthRampDownTime, rhs.ParticleBirthRampDownTime)) return false;
+        if (Compare.NotEqual(lhs.ParticleFullBirthRatio, rhs.ParticleFullBirthRatio)) return false;
+        if (Compare.NotEqual(lhs.ParticlePeristentCount, rhs.ParticlePeristentCount)) return false;
+        if (Compare.NotEqual(lhs.ParticleLifetime, rhs.ParticleLifetime)) return false;
+        if (Compare.NotEqual(lhs.ParticleLifetimePlusMinus, rhs.ParticleLifetimePlusMinus)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialSpeedAlongNormal, rhs.ParticleInitialSpeedAlongNormal)) return false;
+        if (Compare.NotEqual(lhs.ParticleAccelerationAlongNormal, rhs.ParticleAccelerationAlongNormal)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialVelocity1, rhs.ParticleInitialVelocity1)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialVelocity2, rhs.ParticleInitialVelocity2)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialVelocity3, rhs.ParticleInitialVelocity3)) return false;
+        if (Compare.NotEqual(lhs.ParticleAcceleration1, rhs.ParticleAcceleration1)) return false;
+        if (Compare.NotEqual(lhs.ParticleAcceleration2, rhs.ParticleAcceleration2)) return false;
+        if (Compare.NotEqual(lhs.ParticleAcceleration3, rhs.ParticleAcceleration3)) return false;
+        if (Compare.NotEqual(lhs.ParticleScaleKey1, rhs.ParticleScaleKey1)) return false;
+        if (Compare.NotEqual(lhs.ParticleScaleKey2, rhs.ParticleScaleKey2)) return false;
+        if (Compare.NotEqual(lhs.ParticleScaleKey1Time, rhs.ParticleScaleKey1Time)) return false;
+        if (Compare.NotEqual(lhs.ParticleScaleKey2Time, rhs.ParticleScaleKey2Time)) return false;
+        if (Compare.NotEqual(lhs.ColorKey1, rhs.ColorKey1)) return false;
+        if (Compare.NotEqual(lhs.ColorKey2, rhs.ColorKey2)) return false;
+        if (Compare.NotEqual(lhs.ColorKey3, rhs.ColorKey3)) return false;
+        if (Compare.NotEqual(lhs.ColorKey1Alpha, rhs.ColorKey1Alpha)) return false;
+        if (Compare.NotEqual(lhs.ColorKey2Alpha, rhs.ColorKey2Alpha)) return false;
+        if (Compare.NotEqual(lhs.ColorKey3Alpha, rhs.ColorKey3Alpha)) return false;
+        if (Compare.NotEqual(lhs.ColorKey1Time, rhs.ColorKey1Time)) return false;
+        if (Compare.NotEqual(lhs.ColorKey2Time, rhs.ColorKey2Time)) return false;
+        if (Compare.NotEqual(lhs.ColorKey3Time, rhs.ColorKey3Time)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialSpeedAlongNormalPlusMinus, rhs.ParticleInitialSpeedAlongNormalPlusMinus)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialRotationDegree, rhs.ParticleInitialRotationDegree)) return false;
+        if (Compare.NotEqual(lhs.ParticleInitialRotationDegreePlusMinus, rhs.ParticleInitialRotationDegreePlusMinus)) return false;
+        if (Compare.NotEqual(lhs.ParticleRotationSpeedDegreePerSec, rhs.ParticleRotationSpeedDegreePerSec)) return false;
+        if (Compare.NotEqual(lhs.ParticleRotationSpeedDegreePerSecPlusMinus, rhs.ParticleRotationSpeedDegreePerSecPlusMinus)) return false;
+        if (Compare.NotEqual(lhs.AddonModels, rhs.AddonModels)) return false;
+        if (Compare.NotEqual(lhs.HolesStartTime, rhs.HolesStartTime)) return false;
+        if (Compare.NotEqual(lhs.HolesEndTime, rhs.HolesEndTime)) return false;
+        if (Compare.NotEqual(lhs.HolesStartValue, rhs.HolesStartValue)) return false;
+        if (Compare.NotEqual(lhs.HolesEndValue, rhs.HolesEndValue)) return false;
+        if (Compare.NotEqual(lhs.EdgeWidth, rhs.EdgeWidth)) return false;
+        if (Compare.NotEqual(lhs.EdgeColor, rhs.EdgeColor)) return false;
+        if (Compare.NotEqual(lhs.ExplosionWindSpeed, rhs.ExplosionWindSpeed)) return false;
+        if (Compare.NotEqual(lhs.TextureCountU, rhs.TextureCountU)) return false;
+        if (Compare.NotEqual(lhs.TextureCountV, rhs.TextureCountV)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsFadeInTime, rhs.AddonModelsFadeInTime)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsFadeOutTime, rhs.AddonModelsFadeOutTime)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsScaleStart, rhs.AddonModelsScaleStart)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsScaleEnd, rhs.AddonModelsScaleEnd)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsScaleInTime, rhs.AddonModelsScaleInTime)) return false;
+        if (Compare.NotEqual(lhs.AddonModelsScaleOutTime, rhs.AddonModelsScaleOutTime)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey2, rhs.FillColorKey2)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey3, rhs.FillColorKey3)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey1Scale, rhs.FillColorKey1Scale)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey2Scale, rhs.FillColorKey2Scale)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey3Scale, rhs.FillColorKey3Scale)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey1Time, rhs.FillColorKey1Time)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey2Time, rhs.FillColorKey2Time)) return false;
+        if (Compare.NotEqual(lhs.FillColorKey3Time, rhs.FillColorKey3Time)) return false;
+        if (Compare.NotEqual(lhs.ColorScale, rhs.ColorScale)) return false;
+        if (Compare.NotEqual(lhs.BirthPositionOffset, rhs.BirthPositionOffset)) return false;
+        if (Compare.NotEqual(lhs.BirthPositionOffsetRangePlusMinus, rhs.BirthPositionOffsetRangePlusMinus)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedStartFrame, rhs.ParticleAnimatedStartFrame)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedStartFrameVariation, rhs.ParticleAnimatedStartFrameVariation)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedEndFrame, rhs.ParticleAnimatedEndFrame)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedLoopStartFrame, rhs.ParticleAnimatedLoopStartFrame)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedLoopStartVariation, rhs.ParticleAnimatedLoopStartVariation)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedFrameCount, rhs.ParticleAnimatedFrameCount)) return false;
+        if (Compare.NotEqual(lhs.ParticleAnimatedFrameCountVariation, rhs.ParticleAnimatedFrameCountVariation)) return false;
+        if (Compare.NotEqual(lhs.FillTextureScaleU, rhs.FillTextureScaleU)) return false;
+        if (Compare.NotEqual(lhs.FillTextureScaleV, rhs.FillTextureScaleV)) return false;
+        if (Compare.NotEqual(lhs.SceneGraphEmitDepthLimit, rhs.SceneGraphEmitDepthLimit)) return false;
+        if (Compare.NotEqual(lhs.DATADataTypeState, rhs.DATADataTypeState)) return false;
+        return true;
+    }
+
+    public static void DATADeepCopy(IEffectShader lhs, IEffectShaderGetter rhs)
+    {
+        lhs.MembraneSourceBlendMode = rhs.MembraneSourceBlendMode;
+        lhs.MembraneBlendOperation = rhs.MembraneBlendOperation;
+        lhs.MembraneZTest = rhs.MembraneZTest;
+        lhs.FillColorKey1 = rhs.FillColorKey1;
+        lhs.FillAlphaFadeInTime = rhs.FillAlphaFadeInTime;
+        lhs.FillFullAlphaTime = rhs.FillFullAlphaTime;
+        lhs.FillFadeOutTime = rhs.FillFadeOutTime;
+        lhs.FillPersistentAlphaRatio = rhs.FillPersistentAlphaRatio;
+        lhs.FillAlphaPulseAmplitude = rhs.FillAlphaPulseAmplitude;
+        lhs.FillAlphaPulseFrequency = rhs.FillAlphaPulseFrequency;
+        lhs.FillTextureAnimationSpeedU = rhs.FillTextureAnimationSpeedU;
+        lhs.FillTextureAnimationSpeedV = rhs.FillTextureAnimationSpeedV;
+        lhs.EdgeEffectFallOff = rhs.EdgeEffectFallOff;
+        lhs.EdgeEffectColor = rhs.EdgeEffectColor;
+        lhs.EdgeEffectAlphaFadeInTime = rhs.EdgeEffectAlphaFadeInTime;
+        lhs.EdgeEffectFullAlphaTime = rhs.EdgeEffectFullAlphaTime;
+        lhs.EdgeEffectAlphaFadeOutTime = rhs.EdgeEffectAlphaFadeOutTime;
+        lhs.EdgeEffectPersistentAlphaRatio = rhs.EdgeEffectPersistentAlphaRatio;
+        lhs.EdgeEffectAlphaPulseAmplitude = rhs.EdgeEffectAlphaPulseAmplitude;
+        lhs.EdgeEffectAlphaPulseFrequency = rhs.EdgeEffectAlphaPulseFrequency;
+        lhs.FillFullAlphaRatio = rhs.FillFullAlphaRatio;
+        lhs.EdgeEffectFullAlphaRatio = rhs.EdgeEffectFullAlphaRatio;
+        lhs.MembraneDestBlendMode = rhs.MembraneDestBlendMode;
+        lhs.ParticleSourceBlendMode = rhs.ParticleSourceBlendMode;
+        lhs.ParticleBlendOperation = rhs.ParticleBlendOperation;
+        lhs.ParticleZTest = rhs.ParticleZTest;
+        lhs.ParticleDestBlendMode = rhs.ParticleDestBlendMode;
+        lhs.ParticleBirthRampUpTime = rhs.ParticleBirthRampUpTime;
+        lhs.ParticleFullBirthTime = rhs.ParticleFullBirthTime;
+        lhs.ParticleBirthRampDownTime = rhs.ParticleBirthRampDownTime;
+        lhs.ParticleFullBirthRatio = rhs.ParticleFullBirthRatio;
+        lhs.ParticlePeristentCount = rhs.ParticlePeristentCount;
+        lhs.ParticleLifetime = rhs.ParticleLifetime;
+        lhs.ParticleLifetimePlusMinus = rhs.ParticleLifetimePlusMinus;
+        lhs.ParticleInitialSpeedAlongNormal = rhs.ParticleInitialSpeedAlongNormal;
+        lhs.ParticleAccelerationAlongNormal = rhs.ParticleAccelerationAlongNormal;
+        lhs.ParticleInitialVelocity1 = rhs.ParticleInitialVelocity1;
+        lhs.ParticleInitialVelocity2 = rhs.ParticleInitialVelocity2;
+        lhs.ParticleInitialVelocity3 = rhs.ParticleInitialVelocity3;
+        lhs.ParticleAcceleration1 = rhs.ParticleAcceleration1;
+        lhs.ParticleAcceleration2 = rhs.ParticleAcceleration2;
+        lhs.ParticleAcceleration3 = rhs.ParticleAcceleration3;
+        lhs.ParticleScaleKey1 = rhs.ParticleScaleKey1;
+        lhs.ParticleScaleKey2 = rhs.ParticleScaleKey2;
+        lhs.ParticleScaleKey1Time = rhs.ParticleScaleKey1Time;
+        lhs.ParticleScaleKey2Time = rhs.ParticleScaleKey2Time;
+        lhs.ColorKey1 = rhs.ColorKey1;
+        lhs.ColorKey2 = rhs.ColorKey2;
+        lhs.ColorKey3 = rhs.ColorKey3;
+        lhs.ColorKey1Alpha = rhs.ColorKey1Alpha;
+        lhs.ColorKey2Alpha = rhs.ColorKey2Alpha;
+        lhs.ColorKey3Alpha = rhs.ColorKey3Alpha;
+        lhs.ColorKey1Time = rhs.ColorKey1Time;
+        lhs.ColorKey2Time = rhs.ColorKey2Time;
+        lhs.ColorKey3Time = rhs.ColorKey3Time;
+        lhs.ParticleInitialSpeedAlongNormalPlusMinus = rhs.ParticleInitialSpeedAlongNormalPlusMinus;
+        lhs.ParticleInitialRotationDegree = rhs.ParticleInitialRotationDegree;
+        lhs.ParticleInitialRotationDegreePlusMinus = rhs.ParticleInitialRotationDegreePlusMinus;
+        lhs.ParticleRotationSpeedDegreePerSec = rhs.ParticleRotationSpeedDegreePerSec;
+        lhs.ParticleRotationSpeedDegreePerSecPlusMinus = rhs.ParticleRotationSpeedDegreePerSecPlusMinus;
+        lhs.AddonModels.SetTo(rhs.AddonModels);
+        lhs.HolesStartTime = rhs.HolesStartTime;
+        lhs.HolesEndTime = rhs.HolesEndTime;
+        lhs.HolesStartValue = rhs.HolesStartValue;
+        lhs.HolesEndValue = rhs.HolesEndValue;
+        lhs.EdgeWidth = rhs.EdgeWidth;
+        lhs.EdgeColor = rhs.EdgeColor;
+        lhs.ExplosionWindSpeed = rhs.ExplosionWindSpeed;
+        lhs.TextureCountU = rhs.TextureCountU;
+        lhs.TextureCountV = rhs.TextureCountV;
+        lhs.AddonModelsFadeInTime = rhs.AddonModelsFadeInTime;
+        lhs.AddonModelsFadeOutTime = rhs.AddonModelsFadeOutTime;
+        lhs.AddonModelsScaleStart = rhs.AddonModelsScaleStart;
+        lhs.AddonModelsScaleEnd = rhs.AddonModelsScaleEnd;
+        lhs.AddonModelsScaleInTime = rhs.AddonModelsScaleInTime;
+        lhs.AddonModelsScaleOutTime = rhs.AddonModelsScaleOutTime;
+        lhs.FillColorKey2 = rhs.FillColorKey2;
+        lhs.FillColorKey3 = rhs.FillColorKey3;
+        lhs.FillColorKey1Scale = rhs.FillColorKey1Scale;
+        lhs.FillColorKey2Scale = rhs.FillColorKey2Scale;
+        lhs.FillColorKey3Scale = rhs.FillColorKey3Scale;
+        lhs.FillColorKey1Time = rhs.FillColorKey1Time;
+        lhs.FillColorKey2Time = rhs.FillColorKey2Time;
+        lhs.FillColorKey3Time = rhs.FillColorKey3Time;
+        lhs.ColorScale = rhs.ColorScale;
+        lhs.BirthPositionOffset = rhs.BirthPositionOffset;
+        lhs.BirthPositionOffsetRangePlusMinus = rhs.BirthPositionOffsetRangePlusMinus;
+        lhs.ParticleAnimatedStartFrame = rhs.ParticleAnimatedStartFrame;
+        lhs.ParticleAnimatedStartFrameVariation = rhs.ParticleAnimatedStartFrameVariation;
+        lhs.ParticleAnimatedEndFrame = rhs.ParticleAnimatedEndFrame;
+        lhs.ParticleAnimatedLoopStartFrame = rhs.ParticleAnimatedLoopStartFrame;
+        lhs.ParticleAnimatedLoopStartVariation = rhs.ParticleAnimatedLoopStartVariation;
+        lhs.ParticleAnimatedFrameCount = rhs.ParticleAnimatedFrameCount;
+        lhs.ParticleAnimatedFrameCountVariation = rhs.ParticleAnimatedFrameCountVariation;
+        lhs.FillTextureScaleU = rhs.FillTextureScaleU;
+        lhs.FillTextureScaleV = rhs.FillTextureScaleV;
+        lhs.SceneGraphEmitDepthLimit = rhs.SceneGraphEmitDepthLimit;
+        lhs.DATADataTypeState = rhs.DATADataTypeState;
+    }
 }

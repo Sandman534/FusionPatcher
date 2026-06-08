@@ -4,19 +4,19 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Noggog;
 
 namespace Fusion
 {
-    internal class ARMO
+    internal class RACE
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Enchantments, Tags.Graphics, Tags.Keywords, Tags.Names, Tags.ObjectBounds,
-                Tags.Sound, Tags.Stats, Tags.Text);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IArmorGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Armor");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.R_Body_F, Tags.R_Body_M, Tags.R_Body_Size_F, Tags.R_Body_Size_M, Tags.R_ChangeSpells,
+                Tags.R_Description, Tags.R_Ears, Tags.R_Eyes, Tags.R_Hair, Tags.R_Head, Tags.R_Mouth, Tags.R_Relations_Add, Tags.R_Relations_Change, 
+                Tags.R_Relations_Remove, Tags.R_Skills, Tags.R_Teeth, Tags.R_Voice_F, Tags.R_Voice_M, Tags.Keywords);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IRaceGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "NPC");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -25,7 +25,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<IArmor, IArmorGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IRace, IRaceGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -34,9 +34,10 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                IArmor? overrideObject = null;
+                IRace? overrideObject = null;
                 MappedTags mapped = new();
                 Keywords NewKeywords = new(wContext.Record.Keywords);
+                Flags<Npc.SkyrimMajorRecordFlag> NewFlags = new(wContext.Record.SkyrimMajorRecordFlags);
 
                 //==============================================================================================================
                 // Mod Lookup
@@ -44,17 +45,17 @@ namespace Fusion
                 foreach(var fContext in modContext)
                 {
                     //==============================================================================================================
-                    // Destructible
+                    // Female Body
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Destructible, mapped, Settings, fContext))
+                    if (Utility.TagCheck(Tags.R_Body_F, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.Destructible,oContext.Record.Destructible)
+                            Compare.NotEqual(fContext.Record.BodyData.Female,oContext.Record.BodyData.Female)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Destructible,wContext.Record.Destructible,oContext.Record.Destructible)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.BodyData.Female,wContext.Record.BodyData.Female,oContext.Record.BodyData.Female)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Destructible = fContext.Record.Destructible?.DeepCopy();
+                                    overrideObject.BodyData.Female?.DeepCopyIn(fContext.Record.BodyData.Female);
                                 }
                             }
                             mapped.SetMapped();
@@ -62,17 +63,17 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Enchantments
+                    // Male Body
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Enchantments, mapped, Settings, fContext))
+                    if (Utility.TagCheck(Tags.R_Body_M, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.ObjectEffect,oContext.Record.ObjectEffect)
+                            Compare.NotEqual(fContext.Record.BodyData.Male,oContext.Record.BodyData.Male)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.ObjectEffect,wContext.Record.ObjectEffect,oContext.Record.ObjectEffect)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.BodyData.Male,wContext.Record.BodyData.Male,oContext.Record.BodyData.Male)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ObjectEffect.SetTo(fContext.Record.ObjectEffect);
+                                    overrideObject.BodyData.Male?.DeepCopyIn(fContext.Record.BodyData.Male);
                                 }
                             }
                             mapped.SetMapped();
@@ -80,23 +81,22 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Graphics
+                    // Change Spells
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
+                    if (Utility.TagCheck(Tags.R_ChangeSpells, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.WorldModel,oContext.Record.WorldModel)
-                            || Compare.NotEqual(fContext.Record.Armature,oContext.Record.Armature)
+                            Compare.NotEqual(fContext.Record.ActorEffect,oContext.Record.ActorEffect)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChangeNull(fContext.Record.WorldModel,wContext.Record.WorldModel,oContext.Record.WorldModel)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.ActorEffect,wContext.Record.ActorEffect,oContext.Record.ActorEffect)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.WorldModel = Utility.NewGender<ArmorModel>(fContext.Record.WorldModel?.Male?.DeepCopy(), fContext.Record.WorldModel?.Female?.DeepCopy());
-                                }
+                                    var existing = new HashSet<FormKey>((overrideObject.ActorEffect ?? []).Select(x => x.FormKey));
 
-                                if (Utility.ShouldChange(fContext.Record.Armature,wContext.Record.Armature,oContext.Record.Armature)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Armature.SetTo(fContext.Record.Armature);
+                                    foreach (var effect in fContext.Record.ActorEffect!) {
+                                        if (existing.Add(effect.FormKey))
+                                            overrideObject.ActorEffect?.Add(effect);
+                                    }
                                 }
                             }
                             mapped.SetMapped();
@@ -104,99 +104,9 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Names
+                    // Description
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Names, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.Name,oContext.Record.Name)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Name,wContext.Record.Name,oContext.Record.Name)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Name = Utility.NewString(fContext.Record.Name);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Sounds
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Sound, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.PickUpSound,oContext.Record.PickUpSound)
-                            || Compare.NotEqual(fContext.Record.PutDownSound,oContext.Record.PutDownSound)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.PickUpSound,wContext.Record.PickUpSound,oContext.Record.PickUpSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.PickUpSound.SetTo(fContext.Record.PickUpSound);
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.PutDownSound,wContext.Record.PutDownSound,oContext.Record.PutDownSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.PutDownSound.SetTo(fContext.Record.PutDownSound);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Stats
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Stats, mapped, Settings, fContext))
-                    {          
-                        if (
-                            Compare.NotEqual(fContext.Record.EditorID,oContext.Record.EditorID)
-                            || Compare.NotEqual(fContext.Record.Value,oContext.Record.Value)
-                            || Compare.NotEqual(fContext.Record.Weight,oContext.Record.Weight)
-                            || Compare.NotEqual(fContext.Record.ArmorRating,oContext.Record.ArmorRating)
-                            || Compare.NotEqual(fContext.Record.BashImpactDataSet,oContext.Record.BashImpactDataSet)
-                            || Compare.NotEqual(fContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.EditorID,wContext.Record.EditorID,oContext.Record.EditorID)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.EditorID = fContext.Record.EditorID;
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.Value,wContext.Record.Value,oContext.Record.Value)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Value = fContext.Record.Value;
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.Weight,wContext.Record.Weight,oContext.Record.Weight)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Weight = fContext.Record.Weight;
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.ArmorRating,wContext.Record.ArmorRating,oContext.Record.ArmorRating)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ArmorRating = fContext.Record.ArmorRating;
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.BashImpactDataSet,wContext.Record.BashImpactDataSet,oContext.Record.BashImpactDataSet)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.BashImpactDataSet.SetTo(fContext.Record.BashImpactDataSet);
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.AlternateBlockMaterial,wContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.AlternateBlockMaterial.SetTo(fContext.Record.AlternateBlockMaterial);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Text
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Text, mapped, Settings, fContext))
+                    if (Utility.TagCheck(Tags.R_Description, mapped, Settings, fContext))
                     {
                         if (
                             Compare.NotEqual(fContext.Record.Description,oContext.Record.Description)
@@ -204,19 +114,109 @@ namespace Fusion
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
                                 if (Utility.ShouldChange(fContext.Record.Description,wContext.Record.Description,oContext.Record.Description)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Description = Utility.NewString(fContext.Record.Description);
+                                    overrideObject.Description = Utility.NewStringNotNull(fContext.Record.Description);
                                 }
                             }
                             mapped.SetMapped();
                         }
                     }
-                
+
+                    //==============================================================================================================
+                    // Skills
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.R_Ears, mapped, Settings, fContext))
+                    {
+                        if (
+                            Compare.NotEqual(fContext.Record.SkillBoost0,oContext.Record.SkillBoost0)
+                            || Compare.NotEqual(fContext.Record.SkillBoost1,oContext.Record.SkillBoost1)
+                            || Compare.NotEqual(fContext.Record.SkillBoost2,oContext.Record.SkillBoost2)
+                            || Compare.NotEqual(fContext.Record.SkillBoost3,oContext.Record.SkillBoost3)
+                            || Compare.NotEqual(fContext.Record.SkillBoost4,oContext.Record.SkillBoost4)
+                            || Compare.NotEqual(fContext.Record.SkillBoost5,oContext.Record.SkillBoost5)
+                            || Compare.NotEqual(fContext.Record.SkillBoost6,oContext.Record.SkillBoost6)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost0,wContext.Record.SkillBoost0,oContext.Record.SkillBoost0)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost0?.DeepCopyIn(fContext.Record.SkillBoost0);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost1,wContext.Record.SkillBoost1,oContext.Record.SkillBoost1)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost1?.DeepCopyIn(fContext.Record.SkillBoost1);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost2,wContext.Record.SkillBoost2,oContext.Record.SkillBoost2)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost2?.DeepCopyIn(fContext.Record.SkillBoost2);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost3,wContext.Record.SkillBoost3,oContext.Record.SkillBoost3)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost3?.DeepCopyIn(fContext.Record.SkillBoost3);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost4,wContext.Record.SkillBoost4,oContext.Record.SkillBoost4)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost4?.DeepCopyIn(fContext.Record.SkillBoost4);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost5,wContext.Record.SkillBoost5,oContext.Record.SkillBoost5)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost5?.DeepCopyIn(fContext.Record.SkillBoost5);
+                                }
+
+                                if (Utility.ShouldChangeNull(fContext.Record.SkillBoost6,wContext.Record.SkillBoost6,oContext.Record.SkillBoost6)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.SkillBoost6?.DeepCopyIn(fContext.Record.SkillBoost6);
+                                }
+                            }
+                            mapped.SetMapped();
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // Female Voice
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.R_Voice_F, mapped, Settings, fContext))
+                    {
+                        if (
+                            Compare.NotEqual(fContext.Record.Voices.Female,oContext.Record.Voices.Female)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Voices.Female,wContext.Record.Voices.Female,oContext.Record.Voices.Female)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Voices.Female = fContext.Record.Voices.Female;
+                                }
+                            }
+                            mapped.SetMapped();
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // Male Voice
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.R_Voice_M, mapped, Settings, fContext))
+                    {
+                        if (
+                            Compare.NotEqual(fContext.Record.Voices.Male,oContext.Record.Voices.Male)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Voices.Male,wContext.Record.Voices.Male,oContext.Record.Voices.Male)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Voices.Male = fContext.Record.Voices.Male;
+                                }
+                            }
+                            mapped.SetMapped();
+                        }
+                    }
+
                     //==============================================================================================================
                     // Keyword Adds
                     //==============================================================================================================
                     if (Settings.TagList(Tags.Keywords).Contains(fContext.ModKey))
                         if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
-                                NewKeywords.Add(fContext.Record.Keywords, oContext.Record.Keywords);
+                            NewKeywords.Add(fContext.Record.Keywords, oContext.Record.Keywords);
                 }
 
                 //==============================================================================================================
@@ -239,8 +239,7 @@ namespace Fusion
                 {
                     var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
                     addedRecord.Keywords = NewKeywords.OverrideObject;
-                }
- 
+                }                
             }
         }
     }

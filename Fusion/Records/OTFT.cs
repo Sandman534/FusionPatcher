@@ -1,20 +1,20 @@
 using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Noggog;
 
 namespace Fusion
 {
-    internal class LVLI
+    internal class OTFT
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Relev, Tags.Delev, Tags.ObjectBounds);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ILeveledItemGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Leveled Item");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Outfits_Add, Tags.Outfits_Remove);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IOutfitGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Outfit");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -23,7 +23,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<ILeveledItem, ILeveledItemGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IOutfit, IOutfitGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -32,9 +32,8 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                ILeveledItem? overrideObject = null;
                 MappedTags mapped = new();
-                Leveled NewList = new(wContext.Record.Entries);
+                Outfits NewOutfits = new(wContext.Record.Items);
 
                 //==============================================================================================================
                 // Mod Lookup
@@ -42,29 +41,11 @@ namespace Fusion
                 foreach(var fContext in modContext)
                 {
                     //==============================================================================================================
-                    // Object Bounds
+                    // Outfit Add
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.ObjectBounds, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.ObjectBounds,oContext.Record.ObjectBounds)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.ObjectBounds,wContext.Record.ObjectBounds,oContext.Record.ObjectBounds)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ObjectBounds.DeepCopyIn(fContext.Record.ObjectBounds);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
-                    // Leveled List Adds
-                    //==============================================================================================================
-                    if (Settings.TagList(Tags.Relev).Contains(fContext.ModKey))
-                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
-                            NewList.Add(fContext.Record.Entries);
+                    if (Settings.TagList(Tags.Outfits_Add).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Items,oContext.Record.Items))
+                            NewOutfits.Add(fContext.Record.Items);
                 }
 
                 //==============================================================================================================
@@ -73,22 +54,21 @@ namespace Fusion
                 foreach(var fContext in modContext.Reverse())
                 {
                     //==============================================================================================================
-                    // Leveled List Removes
+                    // Outfit Removes
                     //==============================================================================================================
-                    if (Settings.TagList(Tags.Delev).Contains(fContext.ModKey))
-                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
-                            NewList.Remove(fContext.Record.Entries, oContext.Record.Entries);
+                    if (Settings.TagList(Tags.Outfits_Remove).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Items,oContext.Record.Items))
+                            NewOutfits.Remove(fContext.Record.Items, oContext.Record.Items);
                 }
 
                 //==============================================================================================================
                 // Finalize
                 //==============================================================================================================
-                if (NewList.Modified)
+                if (NewOutfits.Modified)
                 {
                     var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
-                    addedRecord.Entries = NewList.OverrideItemObject;
-                }
-        
+                    addedRecord.Items?.SetTo(NewOutfits.OverrideObject);
+                }                
             }
         }
     }

@@ -1,20 +1,20 @@
-using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Noggog;
 
 namespace Fusion
 {
-    internal class LVLI
+    internal class STAT
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Relev, Tags.Delev, Tags.ObjectBounds);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<ILeveledItemGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Leveled Item");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Graphics, Tags.ObjectBounds);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IStaticGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Static");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -23,7 +23,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<ILeveledItem, ILeveledItemGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IStatic, IStaticGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -32,15 +32,34 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                ILeveledItem? overrideObject = null;
+                IStatic? overrideObject = null;
                 MappedTags mapped = new();
-                Leveled NewList = new(wContext.Record.Entries);
-
+                
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
                 foreach(var fContext in modContext)
                 {
+                    //==============================================================================================================
+                    // Graphics
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
+                    {
+                        if (
+                            Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
+                            
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Model = fContext.Record.Model?.DeepCopy();
+                                }
+                            }
+                            mapped.SetMapped();
+                        }  
+
+                    }
+
                     //==============================================================================================================
                     // Object Bounds
                     //==============================================================================================================
@@ -58,37 +77,7 @@ namespace Fusion
                             mapped.SetMapped();
                         }
                     }
-
-                    //==============================================================================================================
-                    // Leveled List Adds
-                    //==============================================================================================================
-                    if (Settings.TagList(Tags.Relev).Contains(fContext.ModKey))
-                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
-                            NewList.Add(fContext.Record.Entries);
-                }
-
-                //==============================================================================================================
-                // Reverse Mod Lookup (Removes)
-                //==============================================================================================================
-                foreach(var fContext in modContext.Reverse())
-                {
-                    //==============================================================================================================
-                    // Leveled List Removes
-                    //==============================================================================================================
-                    if (Settings.TagList(Tags.Delev).Contains(fContext.ModKey))
-                        if (Compare.NotEqual(fContext.Record.Entries,oContext.Record.Entries))
-                            NewList.Remove(fContext.Record.Entries, oContext.Record.Entries);
-                }
-
-                //==============================================================================================================
-                // Finalize
-                //==============================================================================================================
-                if (NewList.Modified)
-                {
-                    var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
-                    addedRecord.Entries = NewList.OverrideItemObject;
-                }
-        
+                }                
             }
         }
     }

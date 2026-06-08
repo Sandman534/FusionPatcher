@@ -1,10 +1,8 @@
 using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
-using Mutagen.Bethesda.Plugins.Cache;
 using Noggog;
 
 namespace Fusion
@@ -14,7 +12,7 @@ namespace Fusion
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList("Names,Relations.Remove,Relations.Add,Relations.Change");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Names, Tags.Relations_Remove, Tags.Relations_Add, Tags.Relations_Change);
             HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IFactionGetter>(state, workingModList);
             Utility.RecordCountMessage(affectedFormKeys.Count, "Faction");
 
@@ -29,71 +27,62 @@ namespace Fusion
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
-                var workingContext = allContexts[0];
-                var originalObject = allContexts[^1];
+                var wContext = allContexts[0];
+                var oContext = allContexts[^1];
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
                 IFaction? overrideObject = null;
-                MappedTags mapped = new MappedTags();
-                Relations NewRelation = new(workingContext.Record.Relations);
+                MappedTags mapped = new();
+                Relations NewRelation = new(wContext.Record.Relations);
 
                 //==============================================================================================================
                 // Mod Lookup
                 //==============================================================================================================
-                foreach(var foundContext in modContext)
+                foreach(var fContext in modContext)
                 {
                     //==============================================================================================================
                     // Names
                     //==============================================================================================================
-                    if (mapped.NotMapped("Names") && Settings.TagList(mapped.GetTag()).Contains(foundContext.ModKey))
+                    if (Utility.TagCheck(Tags.Names, mapped, Settings, fContext))
                     {
-                        if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                        {
-                            // Checks
-                            bool Change = false;
-                            if (foundContext.ModKey == workingContext.ModKey || foundContext.ModKey == originalObject.ModKey)
-                                mapped.SetMapped();
-                            else
-                            {
-                                if (Compare.NotEqual(foundContext.Record.Name,workingContext.Record.Name)) Change = true;
-
-                                // Copy Records
-                                if (Change)
-                                {
-                                    overrideObject ??= workingContext.GetOrAddAsOverride(state.PatchMod);
-                                    if (Compare.NotEqual(foundContext.Record.Name,originalObject.Record.Name))
-                                        overrideObject.Name = Utility.NewString(foundContext.Record.Name);
+                        if (
+                            Compare.NotEqual(fContext.Record.Name,oContext.Record.Name)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.Name,wContext.Record.Name,oContext.Record.Name)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.Name = Utility.NewString(fContext.Record.Name);
                                 }
-                                mapped.SetMapped();
                             }
+                            mapped.SetMapped();
                         }
                     }
 
                     //==============================================================================================================
                     // Relation Adds/Changes
                     //==============================================================================================================
-                    if (Settings.TagList("Relations.Add").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
-                            NewRelation.Add(foundContext.Record.Relations);
+                    if (Settings.TagList(Tags.Relations_Add).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Relations,oContext.Record.Relations))
+                            NewRelation.Add(fContext.Record.Relations);
 
-                    if (Settings.TagList("Relations.Change").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
-                            NewRelation.Change(foundContext.Record.Relations, originalObject.Record.Relations);
+                    if (Settings.TagList(Tags.Relations_Change).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Relations,oContext.Record.Relations))
+                            NewRelation.Change(fContext.Record.Relations, oContext.Record.Relations);
 
                 }
 
                 //==============================================================================================================
                 // Reverse Mod Lookup (Removes)
                 //==============================================================================================================
-                foreach(var foundContext in modContext.Reverse())
+                foreach(var fContext in modContext.Reverse())
                 {
                     //==============================================================================================================
                     // Relation Removes
                     //==============================================================================================================
-                    if (Settings.TagList("Relations.Remove").Contains(foundContext.ModKey))
-                        if (Compare.NotEqual(foundContext.Record.Relations,originalObject.Record.Relations))
-                            NewRelation.Remove(foundContext.Record.Relations, originalObject.Record.Relations);
+                    if (Settings.TagList(Tags.Relations_Remove).Contains(fContext.ModKey))
+                        if (Compare.NotEqual(fContext.Record.Relations,oContext.Record.Relations))
+                            NewRelation.Remove(fContext.Record.Relations, oContext.Record.Relations);
                 }
 
                 //==============================================================================================================
@@ -101,7 +90,7 @@ namespace Fusion
                 //==============================================================================================================
                 if (NewRelation.Modified)
                 {
-                    var addedRecord = workingContext.GetOrAddAsOverride(state.PatchMod);
+                    var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
                     addedRecord.Relations.SetTo(NewRelation.OverrideObject);
                 }
         

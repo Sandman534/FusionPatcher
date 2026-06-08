@@ -8,15 +8,14 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class ARMO
+    internal class MISC
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Enchantments, Tags.Graphics, Tags.Keywords, Tags.Names, Tags.ObjectBounds,
-                Tags.Sound, Tags.Stats, Tags.Text);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IArmorGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Armor");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Graphics, Tags.Keywords, Tags.Names, Tags.ObjectBounds, Tags.Sound, Tags.Stats);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IMiscItemGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Misc Item");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -25,7 +24,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<IArmor, IArmorGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IMiscItem, IMiscItemGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -34,7 +33,7 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                IArmor? overrideObject = null;
+                IMiscItem? overrideObject = null;
                 MappedTags mapped = new();
                 Keywords NewKeywords = new(wContext.Record.Keywords);
 
@@ -62,41 +61,23 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Enchantments
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Enchantments, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.ObjectEffect,oContext.Record.ObjectEffect)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.ObjectEffect,wContext.Record.ObjectEffect,oContext.Record.ObjectEffect)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ObjectEffect.SetTo(fContext.Record.ObjectEffect);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                    //==============================================================================================================
                     // Graphics
-                    //==============================================================================================================
+                    //==============================================================================================================                    
                     if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.WorldModel,oContext.Record.WorldModel)
-                            || Compare.NotEqual(fContext.Record.Armature,oContext.Record.Armature)
+                            Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
+                            || Compare.NotEqual(fContext.Record.Icons,oContext.Record.Icons)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChangeNull(fContext.Record.WorldModel,wContext.Record.WorldModel,oContext.Record.WorldModel)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.WorldModel = Utility.NewGender<ArmorModel>(fContext.Record.WorldModel?.Male?.DeepCopy(), fContext.Record.WorldModel?.Female?.DeepCopy());
+                                    overrideObject.Model?.DeepCopyIn(fContext.Record.Model);
                                 }
 
-                                if (Utility.ShouldChange(fContext.Record.Armature,wContext.Record.Armature,oContext.Record.Armature)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Icons,wContext.Record.Icons,oContext.Record.Icons)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Armature.SetTo(fContext.Record.Armature);
+                                    overrideObject.Icons?.DeepCopyIn(fContext.Record.Icons);
                                 }
                             }
                             mapped.SetMapped();
@@ -115,6 +96,24 @@ namespace Fusion
                                 if (Utility.ShouldChange(fContext.Record.Name,wContext.Record.Name,oContext.Record.Name)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
                                     overrideObject.Name = Utility.NewString(fContext.Record.Name);
+                                }
+                            }
+                            mapped.SetMapped();
+                        }
+                    }
+
+                    //==============================================================================================================
+                    // Object Bounds
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.ObjectBounds, mapped, Settings, fContext))
+                    {
+                        if (
+                            Compare.NotEqual(fContext.Record.ObjectBounds,oContext.Record.ObjectBounds)
+                        ){
+                            if (Utility.CheckContext(fContext, wContext, oContext)) {
+                                if (Utility.ShouldChange(fContext.Record.ObjectBounds,wContext.Record.ObjectBounds,oContext.Record.ObjectBounds)) {
+                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
+                                    overrideObject.ObjectBounds.DeepCopyIn(fContext.Record.ObjectBounds);
                                 }
                             }
                             mapped.SetMapped();
@@ -149,14 +148,11 @@ namespace Fusion
                     // Stats
                     //==============================================================================================================
                     if (Utility.TagCheck(Tags.Stats, mapped, Settings, fContext))
-                    {          
+                    {
                         if (
                             Compare.NotEqual(fContext.Record.EditorID,oContext.Record.EditorID)
                             || Compare.NotEqual(fContext.Record.Value,oContext.Record.Value)
                             || Compare.NotEqual(fContext.Record.Weight,oContext.Record.Weight)
-                            || Compare.NotEqual(fContext.Record.ArmorRating,oContext.Record.ArmorRating)
-                            || Compare.NotEqual(fContext.Record.BashImpactDataSet,oContext.Record.BashImpactDataSet)
-                            || Compare.NotEqual(fContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
                                 if (Utility.ShouldChange(fContext.Record.EditorID,wContext.Record.EditorID,oContext.Record.EditorID)) {
@@ -174,50 +170,18 @@ namespace Fusion
                                     overrideObject.Weight = fContext.Record.Weight;
                                 }
 
-                                if (Utility.ShouldChange(fContext.Record.ArmorRating,wContext.Record.ArmorRating,oContext.Record.ArmorRating)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ArmorRating = fContext.Record.ArmorRating;
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.BashImpactDataSet,wContext.Record.BashImpactDataSet,oContext.Record.BashImpactDataSet)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.BashImpactDataSet.SetTo(fContext.Record.BashImpactDataSet);
-                                }
-
-                                if (Utility.ShouldChange(fContext.Record.AlternateBlockMaterial,wContext.Record.AlternateBlockMaterial,oContext.Record.AlternateBlockMaterial)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.AlternateBlockMaterial.SetTo(fContext.Record.AlternateBlockMaterial);
-                                }
                             }
                             mapped.SetMapped();
                         }
                     }
-
-                    //==============================================================================================================
-                    // Text
-                    //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Text, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.Description,oContext.Record.Description)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Description,wContext.Record.Description,oContext.Record.Description)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Description = Utility.NewString(fContext.Record.Description);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-                
+                    
                     //==============================================================================================================
                     // Keyword Adds
                     //==============================================================================================================
-                    if (Settings.TagList(Tags.Keywords).Contains(fContext.ModKey))
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
                         if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
                                 NewKeywords.Add(fContext.Record.Keywords, oContext.Record.Keywords);
-                }
+                }    
 
                 //==============================================================================================================
                 // Reverse Mod Lookup (Removes)
@@ -227,7 +191,7 @@ namespace Fusion
                     //==============================================================================================================
                     // Keyword Removes
                     //==============================================================================================================
-                    if (Settings.TagList(Tags.Keywords).Contains(fContext.ModKey))
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
                         if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
                             NewKeywords.Remove(fContext.Record.Keywords, oContext.Record.Keywords);
                 }
@@ -235,12 +199,11 @@ namespace Fusion
                 //==============================================================================================================
                 // Finalize
                 //==============================================================================================================
-                if (NewKeywords.Modified) 
+                if (NewKeywords.Modified)
                 {
                     var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
                     addedRecord.Keywords = NewKeywords.OverrideObject;
                 }
- 
             }
         }
     }

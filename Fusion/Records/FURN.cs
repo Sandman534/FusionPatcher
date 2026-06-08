@@ -1,3 +1,4 @@
+using DynamicData;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -7,14 +8,14 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class DOOR
+    internal class FURN
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Graphics, Tags.Names, Tags.ObjectBounds, Tags.Sound);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IDoorGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Door");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Destructible, Tags.Graphics, Tags.Keywords, Tags.Names, Tags.ObjectBounds);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IFurnitureGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Furniture");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -23,7 +24,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<IDoor, IDoorGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IFurniture, IFurnitureGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -32,8 +33,9 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                IDoor? overrideObject = null;
+                IFurniture? overrideObject = null;
                 MappedTags mapped = new();
+                Keywords NewKeywords = new(wContext.Record.Keywords);
 
                 //==============================================================================================================
                 // Mod Lookup
@@ -60,16 +62,16 @@ namespace Fusion
 
                     //==============================================================================================================
                     // Graphics
-                    //==============================================================================================================
+                    //==============================================================================================================                    
                     if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
                     {
                         if (
                             Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Model = fContext.Record.Model?.DeepCopy();
+                                    overrideObject.Model?.DeepCopyIn(fContext.Record.Model);
                                 }
                             }
                             mapped.SetMapped();
@@ -111,38 +113,36 @@ namespace Fusion
                             mapped.SetMapped();
                         }
                     }
-
+                    
                     //==============================================================================================================
-                    // Sounds
+                    // Keyword Adds
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.Sound, mapped, Settings, fContext))
-                    {
-                        if (
-                            Compare.NotEqual(fContext.Record.OpenSound,oContext.Record.OpenSound)
-                            || Compare.NotEqual(fContext.Record.CloseSound,oContext.Record.CloseSound)
-                            || Compare.NotEqual(fContext.Record.LoopSound,oContext.Record.LoopSound)
-                        ){
-                            if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.OpenSound,wContext.Record.OpenSound,oContext.Record.OpenSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.OpenSound.SetTo(fContext.Record.OpenSound);
-                                }
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
+                        if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
+                                NewKeywords.Add(fContext.Record.Keywords, oContext.Record.Keywords);
+                }    
 
-                                if (Utility.ShouldChange(fContext.Record.CloseSound,wContext.Record.CloseSound,oContext.Record.CloseSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.CloseSound.SetTo(fContext.Record.CloseSound);
-                                }
+                //==============================================================================================================
+                // Reverse Mod Lookup (Removes)
+                //==============================================================================================================
+                foreach(var fContext in modContext.Reverse())
+                {
+                    //==============================================================================================================
+                    // Keyword Removes
+                    //==============================================================================================================
+                    if (Utility.TagCheck(Tags.Keywords, mapped, Settings, fContext))
+                        if (Compare.NotEqual(fContext.Record.Keywords,oContext.Record.Keywords))
+                            NewKeywords.Remove(fContext.Record.Keywords, oContext.Record.Keywords);
+                }
 
-                                if (Utility.ShouldChange(fContext.Record.LoopSound,wContext.Record.LoopSound,oContext.Record.LoopSound)) {
-                                    overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.LoopSound.SetTo(fContext.Record.LoopSound);
-                                }
-                            }
-                            mapped.SetMapped();
-                        }
-                    }
-
-                }   
+                //==============================================================================================================
+                // Finalize
+                //==============================================================================================================
+                if (NewKeywords.Modified)
+                {
+                    var addedRecord = wContext.GetOrAddAsOverride(state.PatchMod);
+                    addedRecord.Keywords = NewKeywords.OverrideObject;
+                }
             }
         }
     }

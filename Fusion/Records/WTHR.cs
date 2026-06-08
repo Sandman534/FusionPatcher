@@ -7,14 +7,14 @@ using Noggog;
 
 namespace Fusion
 {
-    internal class ADDN
+    internal class WTHR
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, SettingsUtility Settings)
         {
             // Get the working mod lists
-            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Graphics, Tags.ObjectBounds);
-            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IDoorGetter>(state, workingModList);
-            Utility.RecordCountMessage(affectedFormKeys.Count, "Addon Node");
+            HashSet<ModKey> workingModList = Settings.GetModList(Tags.Graphics, Tags.Sound);
+            HashSet<FormKey> affectedFormKeys = Utility.GetAffectedFormKeys<IWeatherGetter>(state, workingModList);
+            Utility.RecordCountMessage(affectedFormKeys.Count, "Weather");
 
             // Loop through the 
             foreach (var formKey in affectedFormKeys)
@@ -23,7 +23,7 @@ namespace Fusion
                 // Initial Settings
                 //==============================================================================================================
                 // Get all the contexts, and leave if there is none
-                var allContexts = state.LinkCache.ResolveAllContexts<IDoor, IDoorGetter>(formKey).ToList();
+                var allContexts = state.LinkCache.ResolveAllContexts<IWeather, IWeatherGetter>(formKey).ToList();
                 if (allContexts.Count < 2) continue;
 
                 // Get the last context, as well as the mods context
@@ -32,7 +32,7 @@ namespace Fusion
                 var modContext = allContexts.Where(x => workingModList.Contains(x.ModKey));
 
                 // Tracking Tags
-                IDoor? overrideObject = null;
+                IWeather? overrideObject = null;
                 MappedTags mapped = new();
 
                 //==============================================================================================================
@@ -46,12 +46,12 @@ namespace Fusion
                     if (Utility.TagCheck(Tags.Graphics, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.Model,oContext.Record.Model)
+                            Compare.NotEqual(fContext.Record.DirectionalAmbientLightingColors,oContext.Record.DirectionalAmbientLightingColors)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.Model,wContext.Record.Model,oContext.Record.Model)) {
+                                if (Utility.ShouldChange(fContext.Record.DirectionalAmbientLightingColors,wContext.Record.DirectionalAmbientLightingColors,oContext.Record.DirectionalAmbientLightingColors)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.Model = fContext.Record.Model?.DeepCopy();
+                                    overrideObject.DirectionalAmbientLightingColors = fContext.Record.DirectionalAmbientLightingColors?.DeepCopy();
                                 }
                             }
                             mapped.SetMapped();
@@ -59,22 +59,23 @@ namespace Fusion
                     }
 
                     //==============================================================================================================
-                    // Object Bounds
+                    // Sounds
                     //==============================================================================================================
-                    if (Utility.TagCheck(Tags.ObjectBounds, mapped, Settings, fContext))
+                    if (Utility.TagCheck(Tags.Sound, mapped, Settings, fContext))
                     {
                         if (
-                            Compare.NotEqual(fContext.Record.ObjectBounds,oContext.Record.ObjectBounds)
+                            Compare.NotEqual(fContext.Record.Sounds,oContext.Record.Sounds)
                         ){
                             if (Utility.CheckContext(fContext, wContext, oContext)) {
-                                if (Utility.ShouldChange(fContext.Record.ObjectBounds,wContext.Record.ObjectBounds,oContext.Record.ObjectBounds)) {
+                                if (Utility.ShouldChangeNull(fContext.Record.Sounds,wContext.Record.Sounds,oContext.Record.Sounds)) {
                                     overrideObject ??= wContext.GetOrAddAsOverride(state.PatchMod);
-                                    overrideObject.ObjectBounds.DeepCopyIn(fContext.Record.ObjectBounds);
+                                    overrideObject.Sounds.SetTo(fContext.Record.Sounds.Select(x => x.DeepCopy()).ToArray());
                                 }
                             }
                             mapped.SetMapped();
                         }
                     }
+
                 }   
             }
         }
