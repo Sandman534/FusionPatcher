@@ -3,10 +3,8 @@ using Mutagen.Bethesda.WPF.Reflection.Attributes;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
-using Newtonsoft.Json;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
-using YamlDotNet.Core.Tokens;
 
 namespace Fusion
 {
@@ -19,7 +17,7 @@ namespace Fusion
         public bool BashTagsLoot = true;
 
         [SettingName("Loot Master List Location")]
-        public string BashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\Skyrim Special Edition\\masterlist.yaml";
+        public string BashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\games\\Skyrim Special Edition\\masterlist.yaml";
 
         [SettingName("No Merge")]
         public List<ModKey> settingsNoMerge = new();
@@ -332,28 +330,43 @@ namespace Fusion
         private void ProcessLOOTMaster(string TagLocation)
         {
             // Get LOOT AppData Folder
-            if (!File.Exists(TagLocation)) return;
+            if (!File.Exists(TagLocation)) {
+                Console.WriteLine("Unable to find LOOT Master List");
+                return;
+            }
+            Console.WriteLine("Processing LOOT Master List");
 
             // Process the YAML to JSON for easier serializaiton
             using StreamReader reader = File.OpenText(TagLocation);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(new MergingParser(new Parser(reader)));
-            var serializer = new SerializerBuilder().JsonCompatible().Build();
-            var json = serializer.Serialize(yamlObject);
-            Rootobject? LOOTList = JsonConvert.DeserializeObject<Rootobject>(json);
 
-            // Process the List
-            if (LOOTList?.plugins != null)
-                foreach (var plugin in LOOTList.plugins)
-                    if (plugin.tag != null && plugin.name != null)
-                    {
-                        LootTag NewTag = new(plugin.name);
-                        foreach (var tag in plugin.tag)
-                            if (tag != null)
-                                NewTag.TagList.Add(tag.ToString() ?? "");
+            // If there is no YAML file
+            if (yamlObject is not Dictionary<object, object> root) return;
 
-                        LootTags.Add(NewTag);
+            // root = (Dictionary<object, object>)yamlObject;
+            foreach (var kvp in root) {
+                if (root.TryGetValue("plugins", out var pluginsObj)) {
+                    foreach (Dictionary<object, object> plugin in (List<object>)pluginsObj) {
+                        if (!plugin.TryGetValue("name", out var nameObj))
+                            continue;
+
+                        LootTag NewTag = new(nameObj.ToString()!);
+                        string testTag = "";
+                        HashSet<string> tags = [];
+
+                        if (plugin.TryGetValue("tag", out var tagObj)) {
+                            foreach (var tag in (List<object>)tagObj) {
+                                NewTag.TagList.Add(tag.ToString()!);
+                                testTag += "," + tag.ToString()!;
+                            }
+                            LootTags.Add(NewTag);
+                        }
                     }
+                }
+            }
+
+            Console.WriteLine("Processed {0} MasterList Records", LootTags.Count);
         }
 
         public void Process(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, Settings UserSettings)
@@ -361,6 +374,7 @@ namespace Fusion
             // Process LOOT Master List
             if (UserSettings.BashTagsLoot)
                 ProcessLOOTMaster(UserSettings.BashTagsLocation);
+                
 
             // Process Bash Tags
             foreach(var mod in state.LoadOrder.ListedOrder)

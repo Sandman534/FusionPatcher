@@ -2,15 +2,15 @@
 
 namespace Fusion
 {
-        public class Rootobject
+        public class RootObject
     {
-        public Prelude? prelude { get; set; }
-        public Common1[]? common { get; set; }
-        public string[]? bash_tags { get; set; }
-        public Global[]? globals { get; set; }
-        public Group[]? groups { get; set; }
+        // public Prelude? prelude { get; set; }
+        // public Common1[]? common { get; set; }
+        // public string[]? bash_tags { get; set; }
+        // public Global[]? globals { get; set; }
+        // public Group[]? groups { get; set; }
         public Plugin[]? plugins { get; set; }
-        public string? some_string { get; set; }
+        // public string? some_string { get; set; }
     }
 
     public class Prelude
