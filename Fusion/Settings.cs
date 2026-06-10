@@ -379,10 +379,6 @@ namespace Fusion
             // Process Bash Tags
             foreach(var mod in state.LoadOrder.ListedOrder)
             {
-                // Skip Mod
-                if (UserSettings.settingsNoMerge.Contains(mod.ModKey))
-                    continue;
-
                 // Bash Tags in Mod Descriptions
                 if (UserSettings.BashTags)
                 {
@@ -497,8 +493,11 @@ namespace Fusion
             ProcessUserSetting(UserSettings.settingsSounds, Tags.Sound);
             ProcessUserSetting(UserSettings.settingsStats, Tags.ObjectBounds, Tags.SpellStats, Tags.Stats);
             ProcessUserSetting(UserSettings.settingsText, Tags.Text);
-        }
 
+            // Remove mods on the NoMerge list
+            foreach(var noMerge in UserSettings.settingsNoMerge) {
+                AllSettings.RemoveAll(x => x.Key == noMerge);
+            }
+        }
     }
-    
 }
