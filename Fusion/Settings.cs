@@ -19,6 +19,9 @@ namespace Fusion
         [SettingName("Loot Master List Location")]
         public string BashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\games\\Skyrim Special Edition\\masterlist.yaml";
 
+        [SettingName("Loot User List Location")]
+        public string UserBashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\games\\Skyrim Special Edition\\userlist.yaml";
+
         [SettingName("No Merge")]
         public List<ModKey> settingsNoMerge = new();
 
@@ -327,53 +330,78 @@ namespace Fusion
             return FixedTagList;
         }
 
-        private void ProcessLOOTMaster(string TagLocation)
+        private void ProcessLOOTMaster(string TagLocation, string UserTagLocation)
         {
-            // Get LOOT AppData Folder
-            if (!File.Exists(TagLocation)) {
+            // 1. Process Master List
+            if (!File.Exists(TagLocation))
+            {
                 Console.WriteLine("Unable to find LOOT Master List");
-                return;
             }
-            Console.WriteLine("Processing LOOT Master List");
+            else
+            {
+                Console.WriteLine("Processing LOOT Master List");
+                int countBefore = LootTags.Count;
+                ProcessFile(TagLocation);
+                Console.WriteLine("Processed {0} MasterList Records", LootTags.Count - countBefore);
+            }
 
-            // Process the YAML to JSON for easier serializaiton
-            using StreamReader reader = File.OpenText(TagLocation);
+            // 2. Process User List
+            if (!File.Exists(UserTagLocation))
+            {
+                Console.WriteLine("Unable to find LOOT User List");
+            }
+            else
+            {
+                Console.WriteLine("Processing LOOT User List");
+                int countBefore = LootTags.Count;
+                ProcessFile(UserTagLocation);
+                Console.WriteLine("Processed {0} UserList Records", LootTags.Count - countBefore);
+            }
+        }
+
+        private void ProcessFile(string filePath)
+        {
+            // Process the YAML to JSON for easier serialization
+            using StreamReader reader = File.OpenText(filePath);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(new MergingParser(new Parser(reader)));
 
-            // If there is no YAML file
+            // If there is no valid YAML file object
             if (yamlObject is not Dictionary<object, object> root) return;
 
-            // root = (Dictionary<object, object>)yamlObject;
-            foreach (var kvp in root) {
-                if (root.TryGetValue("plugins", out var pluginsObj)) {
-                    foreach (Dictionary<object, object> plugin in (List<object>)pluginsObj) {
-                        if (!plugin.TryGetValue("name", out var nameObj))
-                            continue;
+            if (root.TryGetValue("plugins", out var pluginsObj) && pluginsObj is List<object> pluginsList)
+            {
+                foreach (var item in pluginsList)
+                {
+                    if (item is not Dictionary<object, object> plugin)
+                        continue;
 
-                        LootTag NewTag = new(nameObj.ToString()!);
-                        string testTag = "";
-                        HashSet<string> tags = [];
+                    if (!plugin.TryGetValue("name", out var nameObj) || nameObj == null)
+                        continue;
 
-                        if (plugin.TryGetValue("tag", out var tagObj)) {
-                            foreach (var tag in (List<object>)tagObj) {
-                                NewTag.TagList.Add(tag.ToString()!);
-                                testTag += "," + tag.ToString()!;
-                            }
-                            LootTags.Add(NewTag);
+                    LootTag NewTag = new(nameObj.ToString()!);
+                    string testTag = "";
+
+                    if (plugin.TryGetValue("tag", out var tagObj) && tagObj is List<object> tagList)
+                    {
+                        foreach (var tag in tagList)
+                        {
+                            if (tag == null) continue;
+
+                            NewTag.TagList.Add(tag.ToString()!);
+                            testTag += "," + tag.ToString()!;
                         }
+                        LootTags.Add(NewTag);
                     }
                 }
             }
-
-            Console.WriteLine("Processed {0} MasterList Records", LootTags.Count);
         }
 
         public void Process(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, Settings UserSettings)
         {
             // Process LOOT Master List
             if (UserSettings.BashTagsLoot)
-                ProcessLOOTMaster(UserSettings.BashTagsLocation);
+                ProcessLOOTMaster(UserSettings.BashTagsLocation, UserSettings.UserBashTagsLocation);
                 
 
             // Process Bash Tags
