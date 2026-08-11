@@ -344,10 +344,13 @@ namespace Fusion
             }
         }
 
-        private void RemoveUserSetting(params string[] bashTags)
+        private void RemoveUserSetting(bool enabledTag, params string[] bashTags)
         {
-            foreach (var tag in bashTags)
-                AllSettings.RemoveAll(x => x.BashTag.Equals(tag));
+            if (!enabledTag) {
+                foreach (var tag in bashTags) {
+                    AllSettings.RemoveAll(x => x.BashTag.Equals(tag));
+                }
+            }
         }
 
         private static List<string> LegacyTagFix(string pBashTag)
@@ -560,23 +563,23 @@ namespace Fusion
             ProcessUserSetting(UserSettings.settingsText, TextTags);
 
             // Remove the tags from the disabled list
-            if (!UserSettings.disableTags[0].processActors) RemoveUserSetting(ActorTags);
-            if (!UserSettings.disableTags[0].processCells) RemoveUserSetting(CellTags);
-            if (!UserSettings.disableTags[0].processDestructibles) RemoveUserSetting(DestructibleTags);
-            if (!UserSettings.disableTags[0].processEnchantments) RemoveUserSetting(EnchantmentTags);
-            if (!UserSettings.disableTags[0].processGraphics) RemoveUserSetting(GraphicsTags);
-            if (!UserSettings.disableTags[0].processInventory) RemoveUserSetting(InventoryTags);
-            if (!UserSettings.disableTags[0].processKeywords) RemoveUserSetting(KeywordTags);
-            if (!UserSettings.disableTags[0].processLeveled) RemoveUserSetting(LeveledTags);
-            if (!UserSettings.disableTags[0].processNames) RemoveUserSetting(NameTags);
-            if (!UserSettings.disableTags[0].processOutfits) RemoveUserSetting(OutfitTags);
-            if (!UserSettings.disableTags[0].processRace) RemoveUserSetting(RaceTags);
-            if (!UserSettings.disableTags[0].processReferences) RemoveUserSetting(ReferenceTags);
-            if (!UserSettings.disableTags[0].processRelations) RemoveUserSetting(RelationTags);
-            if (!UserSettings.disableTags[0].processScripts) RemoveUserSetting(ScriptTags);
-            if (!UserSettings.disableTags[0].processSounds) RemoveUserSetting(SoundTags);
-            if (!UserSettings.disableTags[0].processStats) RemoveUserSetting(StatTags);
-            if (!UserSettings.disableTags[0].processText) RemoveUserSetting(TextTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processActors, ActorTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processCells, CellTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processDestructibles, DestructibleTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processEnchantments, EnchantmentTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processGraphics, GraphicsTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processInventory, InventoryTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processKeywords, KeywordTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processLeveled, LeveledTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processNames, NameTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processOutfits, OutfitTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processRace, RaceTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processReferences, ReferenceTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processRelations, RelationTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processScripts, ScriptTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processSounds, SoundTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processStats, StatTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processText, TextTags);
 
             // Remove mods on the NoMerge list
             foreach(var noMerge in UserSettings.settingsNoMerge) {
