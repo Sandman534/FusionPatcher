@@ -10,7 +10,7 @@ namespace Fusion
 {
     public class Settings
     {
-        [SettingName("Use Bash Tags")]
+        [SettingName("Use Bash Tags from Mods")]
         public bool BashTags = true;
 
         [SettingName("Use Bash Tags from LOOT")]
@@ -21,6 +21,9 @@ namespace Fusion
 
         [SettingName("Loot User List Location")]
         public string UserBashTagsLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LOOT\\games\\Skyrim Special Edition\\userlist.yaml";
+
+        [SettingName("Process Tags")]
+        public List<ProcessTags> disableTags = new() { new ProcessTags() };
 
         [SettingName("No Merge")]
         public List<ModKey> settingsNoMerge = new();
@@ -37,7 +40,7 @@ namespace Fusion
         [SettingName("Cell Tags")]
         public List<CellSettings> granularCells = new() { new CellSettings() };
 
-        [SettingName("Destuctibles")]
+        [SettingName("Destructibles")]
         public List<ModKey> settingsDestructibles = new();
 
         [SettingName("Enchantments")]
@@ -189,8 +192,71 @@ namespace Fusion
         }
     }
 
+    public class ProcessTags
+    {
+        [SettingName("Actors")]
+        public bool processActors = true;
+        [SettingName("Cells")]
+        public bool processCells = true;
+        [SettingName("Destructibles")]
+        public bool processDestructibles = true;
+        [SettingName("Enchantments")]
+        public bool processEnchantments = true;
+        [SettingName("Graphics")]
+        public bool processGraphics = true;
+        [SettingName("Inventory")]
+        public bool processInventory = true;
+        [SettingName("Keywords")]
+        public bool processKeywords = true;
+        [SettingName("LeveledLists")]
+        public bool processLeveled = true;
+        [SettingName("Names")]
+        public bool processNames = true;
+        [SettingName("Outfits")]
+        public bool processOutfits = true;
+        [SettingName("Race")]
+        public bool processRace = true;
+        [SettingName("References")]
+        public bool processReferences = true;
+        [SettingName("Relations")]
+        public bool processRelations = true;
+        [SettingName("Scripts")]
+        public bool processScripts = true;
+        [SettingName("Sounds")]
+        public bool processSounds = true;
+        [SettingName("Stats")]
+        public bool processStats = true;
+        [SettingName("Text")]
+        public bool processText = true;
+    }
+
     public class SettingsUtility
     {
+        private static readonly string[] ActorTags = [Tags.Actors_ACBS, Tags.Actors_AIData, Tags.Actors_AIPackages, Tags.Actors_AIPackagesForceAdd,
+            Tags.Actors_CombatStyle, Tags.Actors_DeathItem, Tags.Actors_Factions, Tags.Actors_Perks_Add, Tags.Actors_Perks_Change, Tags.Actors_Perks_Remove,
+            Tags.Actors_RecordFlags, Tags.Actors_Skeleton, Tags.Actors_Spells, Tags.Actors_SpellsForceAdd, Tags.Actors_Stats, Tags.Actors_Voice,
+            Tags.NPC_AIPackageOverrides, Tags.NPC_AttackRace, Tags.NPC_Class, Tags.NPC_CrimeFaction, Tags.NPC_DefaultOutfit, Tags.NPC_Race,
+            Tags.NpcFacesForceFullImport];
+        private static readonly string[] CellTags = [Tags.C_Acoustic, Tags.C_Climate, Tags.C_Encounter, Tags.C_ImageSpace, Tags.C_Light, Tags.C_LockList,
+            Tags.C_Location, Tags.C_MiscFlags, Tags.C_Music, Tags.C_Name, Tags.C_Owner, Tags.C_RecordFlags, Tags.C_Regions, Tags.C_SkyLighting, Tags.C_Water];
+        private static readonly string[] DestructibleTags = [Tags.Destructible];
+        private static readonly string[] EnchantmentTags = [Tags.EffectStats, Tags.Enchantments, Tags.EnchantmentStats];
+        private static readonly string[] GraphicsTags = [Tags.Graphics];
+        private static readonly string[] InventoryTags = [Tags.Invent_Add, Tags.Invent_Change, Tags.Invent_Remove];
+        private static readonly string[] KeywordTags = [Tags.Keywords];
+        private static readonly string[] LeveledTags = [Tags.Delev, Tags.Relev];
+        private static readonly string[] NameTags = [Tags.Names];
+        private static readonly string[] OutfitTags = [Tags.Outfits_Add, Tags.Outfits_Remove];
+        private static readonly string[] RaceTags = [Tags.R_AddSpells, Tags.R_Body_F, Tags.R_Body_M, Tags.R_Body_Size_F, Tags.R_Body_Size_M, Tags.R_ChangeSpells,
+            Tags.R_Description, Tags.R_Ears, Tags.R_Eyes, Tags.R_Hair, Tags.R_Head, Tags.R_Mouth, Tags.R_Skills, Tags.R_Teeth, Tags.R_Voice_F, Tags.R_Voice_M];
+        private static readonly string[] ReferenceTags = [Tags.F_Base, Tags.F_EnableParent, Tags.F_LocationReference];
+        private static readonly string[] RelationTags = [Tags.R_Relations_Add, Tags.R_Relations_Change, Tags.R_Relations_Remove, Tags.Relations_Add,
+            Tags.Relations_Change, Tags.Relations_Remove];
+        private static readonly string[] ScriptTags = [Tags.Scripts];
+        private static readonly string[] SoundTags = [Tags.Sound];
+        private static readonly string[] StatTags = [Tags.ObjectBounds, Tags.SpellStats, Tags.Stats];
+        private static readonly string[] TextTags = [Tags.Text];
+
         public List<TagSetting> AllSettings;
         public List<LootTag> LootTags;
 
@@ -278,6 +344,15 @@ namespace Fusion
                 foreach(var tag in bashTags)
                     if (!AllSettings.Where(x => x.BashTag.Equals(tag) && x.Key.Equals(key)).Any())
                         AllSettings.Add(new TagSetting(tag, key));
+            }
+        }
+
+        private void RemoveUserSetting(bool enabledTag, params string[] bashTags)
+        {
+            if (!enabledTag) {
+                foreach (var tag in bashTags) {
+                    AllSettings.RemoveAll(x => x.BashTag.Equals(tag));
+                }
             }
         }
 
@@ -497,30 +572,42 @@ namespace Fusion
             }
 
             // Process Bulk Settings
-            ProcessUserSetting(UserSettings.settingsActors, Tags.Actors_ACBS, Tags.Actors_AIData, Tags.Actors_AIPackages, Tags.Actors_AIPackagesForceAdd,
-                Tags.Actors_CombatStyle, Tags.Actors_DeathItem, Tags.Actors_Factions, Tags.Actors_Perks_Add, Tags.Actors_Perks_Change, Tags.Actors_Perks_Remove,
-                Tags.Actors_RecordFlags, Tags.Actors_Skeleton, Tags.Actors_Spells, Tags.Actors_SpellsForceAdd, Tags.Actors_Stats, Tags.Actors_Voice,
-                Tags.NPC_AIPackageOverrides, Tags.NPC_AttackRace, Tags.NPC_Class, Tags.NPC_Class, Tags.NPC_CrimeFaction, Tags.NPC_DefaultOutfit, Tags.NPC_Race,
-                Tags.NpcFacesForceFullImport);
-            ProcessUserSetting(UserSettings.settingsCells, Tags.C_Acoustic, Tags.C_Climate, Tags.C_Encounter, Tags.C_ImageSpace, Tags.C_Light, Tags.C_LockList,
-                Tags.C_Location, Tags.C_MiscFlags, Tags.C_Music, Tags.C_Name, Tags.C_Owner, Tags.C_RecordFlags, Tags.C_Regions, Tags.C_SkyLighting, Tags.C_Water);
-            ProcessUserSetting(UserSettings.settingsDestructibles, Tags.Destructible);
-            ProcessUserSetting(UserSettings.settingsEnchantments, Tags.EffectStats, Tags.Enchantments, Tags.EnchantmentStats);
-            ProcessUserSetting(UserSettings.settingsGraphics, Tags.Graphics);
-            ProcessUserSetting(UserSettings.settingsInventory, Tags.Invent_Add, Tags.Invent_Change, Tags.Invent_Remove);
-            ProcessUserSetting(UserSettings.settingsKeywords, Tags.Keywords);
-            ProcessUserSetting(UserSettings.settingsLeveled,Tags.Delev, Tags.Relev);
-            ProcessUserSetting(UserSettings.settingsNames,Tags.Names);
-            ProcessUserSetting(UserSettings.settingsOutfits,Tags.Outfits_Add, Tags.Outfits_Remove);
-            ProcessUserSetting(UserSettings.settingsRace, Tags.R_AddSpells, Tags.R_Body_F, Tags.R_Body_M, Tags.R_Body_Size_F, Tags.R_Body_Size_M, Tags.R_ChangeSpells,
-                Tags.R_Description, Tags.R_Ears, Tags.R_Eyes, Tags.R_Hair, Tags.R_Head, Tags.R_Mouth, Tags.R_Skills, Tags.R_Teeth, Tags.R_Voice_F, Tags.R_Voice_M);
-            ProcessUserSetting(UserSettings.settingsRefs, Tags.F_Base, Tags.F_EnableParent, Tags.F_LocationReference);
-            ProcessUserSetting(UserSettings.settingsRelations, Tags.R_Relations_Add, Tags.R_Relations_Change, Tags.R_Relations_Remove, Tags.Relations_Add, 
-                Tags.Relations_Change, Tags.Relations_Remove);
-            ProcessUserSetting(UserSettings.settingsScripts, Tags.Scripts);
-            ProcessUserSetting(UserSettings.settingsSounds, Tags.Sound);
-            ProcessUserSetting(UserSettings.settingsStats, Tags.ObjectBounds, Tags.SpellStats, Tags.Stats);
-            ProcessUserSetting(UserSettings.settingsText, Tags.Text);
+            ProcessUserSetting(UserSettings.settingsActors, ActorTags);
+            ProcessUserSetting(UserSettings.settingsCells, CellTags);
+            ProcessUserSetting(UserSettings.settingsDestructibles, DestructibleTags);
+            ProcessUserSetting(UserSettings.settingsEnchantments, EnchantmentTags);
+            ProcessUserSetting(UserSettings.settingsGraphics, GraphicsTags);
+            ProcessUserSetting(UserSettings.settingsInventory, InventoryTags);
+            ProcessUserSetting(UserSettings.settingsKeywords, KeywordTags);
+            ProcessUserSetting(UserSettings.settingsLeveled, LeveledTags);
+            ProcessUserSetting(UserSettings.settingsNames, NameTags);
+            ProcessUserSetting(UserSettings.settingsOutfits, OutfitTags);
+            ProcessUserSetting(UserSettings.settingsRace, RaceTags);
+            ProcessUserSetting(UserSettings.settingsRefs, ReferenceTags);
+            ProcessUserSetting(UserSettings.settingsRelations, RelationTags);
+            ProcessUserSetting(UserSettings.settingsScripts, ScriptTags);
+            ProcessUserSetting(UserSettings.settingsSounds, SoundTags);
+            ProcessUserSetting(UserSettings.settingsStats, StatTags);
+            ProcessUserSetting(UserSettings.settingsText, TextTags);
+
+            // Remove the tags from the disabled list
+            RemoveUserSetting(UserSettings.disableTags[0].processActors, ActorTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processCells, CellTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processDestructibles, DestructibleTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processEnchantments, EnchantmentTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processGraphics, GraphicsTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processInventory, InventoryTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processKeywords, KeywordTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processLeveled, LeveledTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processNames, NameTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processOutfits, OutfitTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processRace, RaceTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processReferences, ReferenceTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processRelations, RelationTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processScripts, ScriptTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processSounds, SoundTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processStats, StatTags);
+            RemoveUserSetting(UserSettings.disableTags[0].processText, TextTags);
 
             // Remove mods on the NoMerge list
             foreach(var noMerge in UserSettings.settingsNoMerge) {
